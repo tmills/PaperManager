@@ -15,6 +15,7 @@
         <tag>memory limits</tag>
         <tag>psycholinguistics</tag>
     </taglist>
+    <summary>This paper describes the effect that different parsing strategies have on memory requirements in parsers, as well as their effects on local ambiguities while parsing.</summary>
 </paper>
 
 </paperlist>
