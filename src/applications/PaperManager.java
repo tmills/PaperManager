@@ -17,11 +17,9 @@
 
 package applications;
 
-import javax.swing.DefaultListModel;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -32,9 +30,6 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JLabel;
 import javax.swing.JToolBar;
-import javax.swing.ListModel;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
@@ -44,7 +39,6 @@ import tags.Tag;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -52,8 +46,6 @@ import java.util.Set;
 
 /*
  * This is started based on the TableDemo on the swing tutorial site.
- * TODO (High) Fix exception when removing item
- * TODO (High) Related?^ Get remove working (saving)
  * TODO (High) Add importation of bibtex files
  * TODO Add exportation of bibtex files
  * TODO Separate "card" (?) for unclassified PDFs
@@ -157,12 +149,12 @@ public class PaperManager extends JPanel implements ActionListener{
 	public void actionPerformed(ActionEvent arg0) {
 		// TODO Auto-generated method stub
 		if(arg0.getActionCommand().equals(ADD_CMD)){
-			System.err.println("Add button has been pressed!");
+//			System.err.println("Add button has been pressed!");
 			paperList.add(new Paper());
 			tModel.loadData();
 			tModel.fireTableDataChanged();
 		}else if(arg0.getActionCommand().equals(RM_CMD)){
-			System.err.println("Remove button has been pressed!");
+//			System.err.println("Remove button has been pressed!");
 			int row = table.getSelectedRow();
 			paperList.remove(row);
 			tModel.loadData();
@@ -179,11 +171,11 @@ public class PaperManager extends JPanel implements ActionListener{
 			selPaper.setField("summary", summaryBox.getText());
 			writer.writeFile(paperList);
 		}else if(arg0.getActionCommand().equals(ADD_TAG_CMD)){
-			System.err.println("Add tag command triggered");
+//			System.err.println("Add tag command triggered");
 			int row = table.getSelectedRow();
 			tagModel.addTag(row);
 		}else if(arg0.getActionCommand().equals(EXIT)){
-			System.err.println("Exit pressed!");
+//			System.err.println("Exit pressed!");
 			System.exit(0);
 		}else{
 			System.err.println("Unknown event: " + arg0.getActionCommand());
@@ -198,11 +190,14 @@ public class PaperManager extends JPanel implements ActionListener{
 		public void valueChanged(ListSelectionEvent e) {
 			super.valueChanged(e);
 			if(!e.getValueIsAdjusting()){
+//				System.err.println("Value changed: " + e);
 				DefaultListSelectionModel dlsm = (DefaultListSelectionModel) e.getSource();
 				int row = dlsm.getAnchorSelectionIndex();
-				Paper curr = paperList.get(row);
-				summaryBox.setText(curr.getField("summary"));
-				tagModel.setData(curr.getTags());
+				if(row >= 0){
+					Paper curr = paperList.get(row);
+					summaryBox.setText(curr.getField("summary"));
+					tagModel.setData(curr.getTags());
+				}
 			}
 		}
 	}
@@ -370,8 +365,8 @@ public class PaperManager extends JPanel implements ActionListener{
 
 		JMenuBar menubar = new JMenuBar();
 		JMenu menu = new JMenu("File");
-		JMenuItem mi1 = new JMenuItem("Import .bib file (unsupported)");
-		JMenuItem mi2 = new JMenuItem("Export .bib file (unsupported)");
+		JMenuItem mi1 = new JMenuItem("Import .bib file (unimplemented)");
+		JMenuItem mi2 = new JMenuItem("Export .bib file (unimplemented)");
 		JMenuItem miLast = new JMenuItem("Exit");
 		miLast.setActionCommand(EXIT);
 		miLast.addActionListener(newContentPane);
