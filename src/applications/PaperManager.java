@@ -19,6 +19,7 @@ package applications;
 
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -39,13 +40,21 @@ import tags.Tag;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.FileDialog;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Properties;
 import java.util.Set;
 
 /*
  * This is started based on the TableDemo on the swing tutorial site.
+ * TODO (High) Configuration directory and files
  * TODO (High) Add importation of bibtex files
  * TODO Add exportation of bibtex files
  * TODO Separate "card" (?) for unclassified PDFs
@@ -64,6 +73,8 @@ public class PaperManager extends JPanel implements ActionListener{
 	private static final String WRITE_CMD = "WRITE";
 	private static final String ADD_TAG_CMD = "ADD_TAG";
 	private static final String EXIT = "EXIT";
+	private static final String DB_LOC_KEY = "DB_LOC";
+	private static String configurationFile = "/Users/tmill/.papermanager";
 	private ArrayList<Paper> paperList=null;
 	PaperFileWriter writer = null;
 	PaperFileReader pfr = null;
@@ -147,7 +158,6 @@ public class PaperManager extends JPanel implements ActionListener{
 
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
-		// TODO Auto-generated method stub
 		if(arg0.getActionCommand().equals(ADD_CMD)){
 //			System.err.println("Add button has been pressed!");
 			paperList.add(new Paper());
@@ -360,8 +370,77 @@ public class PaperManager extends JPanel implements ActionListener{
 		JFrame frame = new JFrame("Paper Manager");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
+		configurationFile = System.getProperty("user.home") + "/.papermanager";
+		File confFile = new File(configurationFile);
+		
+		// if it doesn't exist create it (have to ask for db_dir location)
+		if(!confFile.exists()){
+			try {
+				confFile.createNewFile();
+			} catch (IOException e) {
+				System.err.println("Error creating configuration file: " + confFile.getPath());
+				e.printStackTrace();
+				System.exit(-1);
+			}
+		}
+		
+		Properties props = new Properties();
+		try {
+			props.load(new FileInputStream(configurationFile));
+		} catch (FileNotFoundException e1) {
+			System.err.println("ERROR: Could not find file: " + configurationFile);
+			e1.printStackTrace();
+			System.exit(-1);
+		} catch (IOException e1) {
+			System.err.println("ERROR: Could not handle file: " + configurationFile);
+			e1.printStackTrace();
+			System.exit(-1);
+		}
+		
+		if(!props.containsKey(DB_LOC_KEY)){
+//			JFileChooser fileChooser = new JFileChooser();
+//			fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			System.setProperty("apple.awt.fileDialogForDirectories", "true");
+			FileDialog fileDialog = new FileDialog(frame);
+			fileDialog.setDirectory(System.getProperty("user.home"));
+			fileDialog.setVisible(true);
+//			int ret = fileChooser.showDialog(frame, "Select");
+			String dbDir= fileDialog.getDirectory() + fileDialog.getFile();
+//			if(ret == JFileChooser.APPROVE_OPTION){
+//				File dbFile = fileChooser.getSelectedFile();
+//				dbDir = dbFile.getPath();
+//			}else{
+//				System.err.println("Cannot continue without knowing directory!");
+//				System.exit(-1);
+//			}
+			props.setProperty(DB_LOC_KEY, dbDir);
+			try {
+				props.store(new FileOutputStream(confFile), null);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+				System.exit(-1);
+			} catch (IOException e) {
+				e.printStackTrace();
+				System.exit(-1);
+			}
+		}
+		
+		// read configuration file
+		String dbDir = props.getProperty(DB_LOC_KEY);
+		
 		//Create and set up the content pane.
-		PaperManager newContentPane = new PaperManager("papers_test.xml");
+		File dbFile = new File(dbDir + "/papers.xml");
+		if(!dbFile.exists()){
+			try {
+				dbFile.createNewFile();
+			} catch (IOException e) {
+				System.err.println("ERROR: Could not create file: " + dbFile.getPath());
+				e.printStackTrace();
+				System.exit(-1);
+			}
+		}
+		
+		PaperManager newContentPane = new PaperManager(dbFile.getPath());
 
 		JMenuBar menubar = new JMenuBar();
 		JMenu menu = new JMenu("File");
@@ -389,6 +468,9 @@ public class PaperManager extends JPanel implements ActionListener{
 	}
 
 	public static void main(String[] args) {
+		// first read conf file (or create if doesn't exist)
+
+		
 		//Schedule a job for the event-dispatching thread:
 		//creating and showing this application's GUI.
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
