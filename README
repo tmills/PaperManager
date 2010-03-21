@@ -1,0 +1,30 @@
+Copyright 2010 Tim Miller
+
+This program is designed and written to solve the problem of tracking all
+the scientific papers I've downloaded/read/toread'd, and combining those
+different states into a single interface.   Rather than having downloads 
+in my Downloads folder (with obscure names assigned by citeseer or sciencedirect
+or whatever), cited files in .bib file (with no user metadata), and having
+separate pdfs on every machine, they should be tracked like iTunes tracks songs,
+with some improvements specific to scientific papers.
+
+What separates program from others with similar goals:
+ * Allows for tagging and summarization of papers.
+ * Intended to use Dropbox folder for storing pdfs across machines
+ * Intended to open PDFs from interface (instead of searching with spotlight,
+which is surprisingly bad at locating pdfs based on content)
+ * Uses xml library file to track refs (also sync'd with Dropbox)
+ * Tight integration with bibtex (import/export coming soon)
+
+
+HELPING
+If anyone is interested in contributing to this project, I would be thrilled.
+I have the above goals in mind, and I think I can do those fairly quickly.
+
+Where I could use help the most is:
+ * Making the interface "pretty" as well as "standard"
+ * Organizing the code neatly
+ * Cross-platform configuration (I can put .papermanager file in linux/mac with
+directory information, but how to do it in windows/other smartly?)
+ * Features I have not thought of but would be very useful to others.
+
