@@ -1,21 +1,35 @@
 <paperlist>
-
 <paper>
-    <type>article</type>
-    <label>abneyjohnson91</label>
-    <authors>Steven P. Abney and Mark Johnson</authors>
-    <title>Memory Requirements and Local Ambiguities of Parsing Strategies</title>
-    <journal>Journal of Psycholinguistic Research</journal>
-    <volume>20</volume>
-    <number>3</number>
-    <pages>233--250</pages>
-    <year>1991</year>
-    <taglist>
-        <tag>parsing</tag>
-        <tag>memory limits</tag>
-        <tag>psycholinguistics</tag>
-    </taglist>
-    <summary>This paper describes the effect that different parsing strategies have on memory requirements in parsers, as well as their effects on local ambiguities while parsing.</summary>
+	<type>article</type>
+	<label>abneyjohnson91</label>
+	<authors>Steven P. Abney and Mark Johnson</authors>
+	<title>Memory Requirements and Local Ambiguities of Parsing Strategies</title>
+	<journal>Journal of Psycholinguistic Research</journal>
+	<volume>20</volume>
+	<number>3</number>
+	<pages>233--250</pages>
+	<year>1991</year>
+	<summary>This paper describes the effect that different parsing strategies have on memory requirements in parsers, as well as their effects on local ambiguities while parsing.</summary>
+	<taglist>
+		<tag>parsing</tag>
+		<tag>memory limits</tag>
+		<tag>psycholinguistics</tag>
+		<tag>classic</tag>
+	</taglist>
 </paper>
-
+<paper>
+	<type>inproceedings</type>
+	<label>miller09naacl</label>
+	<authors>Tim Miller</authors>
+	<summary>This is a paper describing some syntactic transforms that allow for more natural representation of unfinished constituents in speech repairs.</summary>
+	<title>Improved Syntactic Models for Parsing Speech Repair</title>
+	<year>2009</year>
+	<taglist>
+		<tag>self</tag>
+		<tag>parsing</tag>
+		<tag>disfluency</tag>
+		<tag>speech repair</tag>
+	</taglist>
+</paper>
 </paperlist>
+
