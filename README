@@ -1,5 +1,12 @@
 Copyright 2010 Tim Miller
 
+STATUS
+This program is under heavily development.  It is not ready for practical use.
+There is no distribution yet.  The repository is formatted as an eclipse
+project, and there is no configuration, everything is hardcoded and uses
+a test file.
+
+PURPOSE
 This program is designed and written to solve the problem of tracking all
 the scientific papers I've downloaded/read/toread'd, and combining those
 different states into a single interface.   Rather than having downloads 
@@ -8,7 +15,7 @@ or whatever), cited files in .bib file (with no user metadata), and having
 separate pdfs on every machine, they should be tracked like iTunes tracks songs,
 with some improvements specific to scientific papers.
 
-What separates program from others with similar goals:
+What separates this program from others with similar goals:
  * Allows for tagging and summarization of papers.
  * Intended to use Dropbox folder for storing pdfs across machines
  * Intended to open PDFs from interface (instead of searching with spotlight,
@@ -22,7 +29,7 @@ If anyone is interested in contributing to this project, I would be thrilled.
 I have the above goals in mind, and I think I can do those fairly quickly.
 
 Where I could use help the most is:
- * Making the interface "pretty" as well as "standard"
+ * Making the interface "pretty" as well as "standard" (e.g., in os x it should look like an os x program)
  * Organizing the code neatly
  * Cross-platform configuration (I can put .papermanager file in linux/mac with
 directory information, but how to do it in windows/other smartly?)
