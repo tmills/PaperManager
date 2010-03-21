@@ -23,7 +23,6 @@ import java.util.ArrayList;
 
 /** 
  * This is built out of the TableDemo on the swing tutorial site.
- * TODO (High) Implement exit menu item
  * TODO (High) Add importation of bibtex files
  * TODO Add exportation of bibtex files
  * TODO (HIGH) Add tag editor pane
@@ -37,6 +36,9 @@ public class PaperManager extends JPanel implements ActionListener{
 	private boolean DEBUG = true;
 	private static final String ADD_CMD = "ADD";
 	private static final String RM_CMD = "RM";
+	private static final String IMP_CMD = "IMPORT";
+	private static final String EXP_CMD = "EXPORT";
+	private static final String EXIT = "EXIT";
 	private ArrayList<Paper> paperList=null;
 	PaperFileWriter writer = null;
 	PaperFileReader pfr = null;
@@ -95,7 +97,16 @@ public class PaperManager extends JPanel implements ActionListener{
 			tModel.loadData();
 			tModel.fireTableDataChanged();
 			writer.writeFile(paperList);
-		}		
+		}else if(arg0.getActionCommand().equals(IMP_CMD)){
+			System.err.println("Import command triggered");
+		}else if(arg0.getActionCommand().equals(EXP_CMD)){
+			System.err.println("Export command triggered");
+		}else if(arg0.getActionCommand().equals(EXIT)){
+			System.err.println("Exit pressed!");
+			System.exit(0);
+		}else{
+			System.err.println("Unknown event: " + arg0.getActionCommand());
+		}
 	}
 	
 	class MyTableModel extends AbstractTableModel{
@@ -238,9 +249,12 @@ public class PaperManager extends JPanel implements ActionListener{
 		JMenuItem mi1 = new JMenuItem("Import .bib file (unsupported)");
 		JMenuItem mi2 = new JMenuItem("Export .bib file (unsupported)");
 		JMenuItem miLast = new JMenuItem("Exit (unsupported)");
+		miLast.setActionCommand(EXIT);
+		miLast.addActionListener(newContentPane);
 		menu.add(mi1);
 		menu.add(mi2);
 		menu.add(miLast);
+		//menu.addActionListener(newContentPane);
 		
 		menubar.add(menu);
 		
