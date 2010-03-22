@@ -479,13 +479,13 @@ public class PaperManager extends JPanel implements ActionListener{
 //		System.out.println("arch: " + System.getProperty("os.arch"));
 //		System.out.println("version: " + System.getProperty("os.property"));
 		
-		try{
-			// TODO Play with this in OSX -- works either with system or crossplatform in linux!
-		UIManager.setLookAndFeel(
-	            UIManager.getSystemLookAndFeelClassName());
-		}catch(Exception e){
-			fatal(e, "ERROR: could not set window \"look and feel\"");
-		}
+//		try{
+//			// TODO Play with this in OSX -- works either with system or crossplatform in linux!
+//		UIManager.setLookAndFeel(
+//	            UIManager.getCrossPlatformLookAndFeelClassName());
+//		}catch(Exception e){
+//			fatal(e, "ERROR: could not set window \"look and feel\"");
+//		}
 		
 		//Schedule a job for the event-dispatching thread:
 		//creating and showing this application's GUI.
