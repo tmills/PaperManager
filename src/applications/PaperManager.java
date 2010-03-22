@@ -28,6 +28,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JLabel;
@@ -148,10 +149,18 @@ public class PaperManager extends JPanel implements ActionListener{
 		// make a split pane?
 		JSplitPane sidePanel = new JSplitPane(JSplitPane.VERTICAL_SPLIT, summaryPanel, tagPanel); 		
 		
+		JPanel entryPanel = new JPanel(new BorderLayout());
+		
+		JTabbedPane mainPane = new JTabbedPane();
 		//Add the scroll pane to this panel.
-		add(toolbar, BorderLayout.NORTH);
-		add(scrollPane, BorderLayout.CENTER);
-		add(sidePanel, BorderLayout.EAST);
+		entryPanel.add(toolbar, BorderLayout.NORTH);
+		entryPanel.add(scrollPane, BorderLayout.CENTER);
+		entryPanel.add(sidePanel, BorderLayout.EAST);
+		mainPane.addTab("Bibtex Entries", entryPanel);
+		
+		JPanel docPanel = new JPanel(new BorderLayout());
+		mainPane.addTab("Unbound Documents", docPanel);
+		add(mainPane);
 	}
 
 	@Override
