@@ -2,25 +2,26 @@
 <paper>
 	<type>article</type>
 	<label>abneyjohnson91</label>
-	<authors>Steven P. Abney and Mark Johnson</authors>
-	<title>Memory Requirements and Local Ambiguities of Parsing Strategies</title>
 	<journal>Journal of Psycholinguistic Research</journal>
-	<volume>20</volume>
-	<number>3</number>
+	<author>Steven P. Abney and Mark Johnson</author>
+	<title>Memory Requirements and Local Ambiguities of Parsing Strategies</title>
 	<pages>233--250</pages>
+	<volume>20</volume>
 	<year>1991</year>
+	<number>3</number>
 	<summary>This paper describes the effect that different parsing strategies have on memory requirements in parsers, as well as their effects on local ambiguities while parsing.</summary>
 	<taglist>
 		<tag>parsing</tag>
 		<tag>memory limits</tag>
 		<tag>psycholinguistics</tag>
 		<tag>classic</tag>
+		<tag>parsing strategies</tag>
 	</taglist>
 </paper>
 <paper>
 	<type>inproceedings</type>
 	<label>miller09naacl</label>
-	<authors>Tim Miller</authors>
+	<author>Tim Miller</author>
 	<summary>This is a paper describing some syntactic transforms that allow for more natural representation of unfinished constituents in speech repairs.</summary>
 	<title>Improved Syntactic Models for Parsing Speech Repair</title>
 	<year>2009</year>
@@ -30,6 +31,80 @@
 		<tag>disfluency</tag>
 		<tag>speech repair</tag>
 		<tag>transform</tag>
+	</taglist>
+</paper>
+<paper>
+	<type>inproceedings</type>
+	<label>honalschultz05</label>
+	<author>Matthias Honal and Tanja Schultz </author>
+	<title>Automatic disfluency removal on recognized spontaneous speech -- rapid adaptation to speaker-dependent disfluencies</title>
+	<booktitle>Proceedings of the IEEE International Conference on Acoustics, Speech, and Signal Processing</booktitle>
+	<year>2005</year>
+	<taglist>
+		<tag>disfluency</tag>
+		<tag>speech</tag>
+		<tag>icassp</tag>
+	</taglist>
+</paper>
+<paper>
+	<type>inproceedings</type>
+	<label>honalschultz03</label>
+	<author>Matthias Honal and Tanja Schultz</author>
+	<title>Correction of disfluencies in spontaneous speech using a noisy-channel approach</title>
+	<booktitle>Proceedings of the 8th Eurospeech Conference</booktitle>
+	<year>2003</year>
+	<taglist>
+		<tag>speech</tag>
+		<tag>disfluency</tag>
+		<tag>eurospeech</tag>
+	</taglist>
+</paper>
+<paper>
+	<type>inproceedings</type>
+	<label>stolckeetal98</label>
+	<author>Andreas Stolcke and Elizabeth Shriberg and R. Bates and Mari Ostendorf and Dustin Hakkani and M. Plauche and G. Tur and Y. Lu</author>
+	<title>Automatic detection of sentence boundaries and disfluencies based on recognized words</title>
+	<booktitle>Proceedings of the ICSLP</booktitle>
+	<year>1998</year>
+	<taglist>
+		<tag>speech</tag>
+		<tag>disfluency</tag>
+	</taglist>
+</paper>
+<paper>
+	<type>inproceedings</type>
+	<label>liuetal03</label>
+	<author>Yang Liu and Elizabeth Shriberg and Andreas Stolcke</author>
+	<title>Automatic disfluency identification in conversational speech using multiple knowledge sources</title>
+	<booktitle>Proceedings of the 8th Eurospeech Conference</booktitle>
+	<year>2003</year>
+	<taglist>
+		<tag>speech</tag>
+		<tag>disfluency</tag>
+		<tag>hmm</tag>
+	</taglist>
+</paper>
+<paper>
+	<type>inproceedings</type>
+	<label>liuetal05</label>
+	<author>Yang Liu and Elizabeth Shriberg and Andreas Stolcke and Mary Harper</author>
+	<title>Comparing {HMM}, Maximum Entropy, and Conditional Random Fields for Disfluency Detection</title>
+	<booktitle>Proceedings of Interspeech</booktitle>
+	<year>2005</year>
+	<taglist>
+		<tag>speech</tag>
+		<tag>disfluency</tag>
+		<tag>hmm</tag>
+		<tag>crf</tag>
+	</taglist>
+</paper>
+<paper>
+	<type></type>
+	<label>liuetal06</label>
+	<author>Yang Liu and Elizabeth Shriberg and Andreas Stolcke and Dustin Hillard and Mari Ostendorf and Mary Harper</author>
+	<taglist>
+		<tag>speech</tag>
+		<tag>disfluency</tag>
 	</taglist>
 </paper>
 </paperlist>

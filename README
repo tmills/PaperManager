@@ -1,5 +1,12 @@
 Copyright 2010 Tim Miller
 
+LICENSE
+See file LICENSE for details, but this software is licensed under GPLv3.
+For convenience purposes I have included in the distribution
+a library called javabib for parsing bibtex files which was originally 
+licensed under GPLv2 and written by Johannes Henkel.  Thanks Johannes for 
+saving me a lot of time and effort.
+
 STATUS
 This program is under heavily development.  It is not ready for practical use.
 There is no distribution yet.  The repository is formatted as an eclipse

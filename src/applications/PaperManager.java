@@ -38,6 +38,8 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 
+import bib.BibtexFileReader;
+
 import papers.*;
 import tags.Tag;
 
@@ -57,8 +59,6 @@ import java.util.Set;
 
 /*
  * This is started based on the TableDemo on the swing tutorial site.
- * TODO (High) Configuration directory and files (cross-platform)
- * TODO (High) Tag editor: Have text area - type then hit enter to add to list!
  * TODO (High) Add importation of bibtex files
  * TODO (High) Link to PDFs
  * TODO Add exportation of bibtex files
@@ -67,7 +67,6 @@ import java.util.Set;
  * TODO (Low) Have "add paper" button open a dialog to fill in? (use table only for small edits)
  *      Low because most papers will be added w/ bibtex for the time being
  * TODO (low) Make division between gui elements thicker (prettier)
- * TODO (low) Make "tag add" button put you in new tag editing mode (no double click required) 
  */
 
 public class PaperManager extends JPanel implements ActionListener{
@@ -83,6 +82,7 @@ public class PaperManager extends JPanel implements ActionListener{
 	private ArrayList<Paper> paperList=null;
 	PaperFileWriter writer = null;
 	PaperFileReader pfr = null;
+	BibtexFileReader bibReader = null;
 	JTable table;
 	JTextArea summaryBox=null;
 	JTextField tagField=null;
@@ -170,6 +170,18 @@ public class PaperManager extends JPanel implements ActionListener{
 			writer.writeFile(paperList);
 		}else if(arg0.getActionCommand().equals(IMP_CMD)){
 			System.err.println("Import command triggered");
+			String fn="";
+			if(bibReader == null) bibReader = new BibtexFileReader();
+			JFileChooser fc = new JFileChooser();
+			fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+			int ret = fc.showOpenDialog(table);
+			if(ret == JFileChooser.APPROVE_OPTION){
+				fn = fc.getSelectedFile().getPath();
+				bibReader.readFile(fn, paperList);
+				tModel.loadData();
+				tModel.fireTableDataChanged();
+				//writer.writeFile(paperList);
+			}
 		}else if(arg0.getActionCommand().equals(EXP_CMD)){
 			System.err.println("Export command triggered");
 		}else if(arg0.getActionCommand().equals(WRITE_CMD)){
@@ -216,7 +228,7 @@ public class PaperManager extends JPanel implements ActionListener{
 		private int TYPE_COL;
 		private int VENUE_COL;
 		private int PDF_COL;
-		private String[] columnNames = {"Label", "Authors",
+		private String[] columnNames = {"Label", "Author(s)",
 				"Title",
 				"Type",
 				"Venue",
@@ -236,7 +248,7 @@ public class PaperManager extends JPanel implements ActionListener{
 				data[i] = new Object[columnNames.length];
 				LABEL_COL = j;
 				data[i][j++] = paperList.get(i).getLabel();
-				data[i][j++] = paperList.get(i).getField("authors");
+				data[i][j++] = paperList.get(i).getField("author");
 				data[i][j++] = paperList.get(i).getField("title");
 				TYPE_COL = j;
 				data[i][j++] = paperList.get(i).getType();
@@ -289,8 +301,12 @@ public class PaperManager extends JPanel implements ActionListener{
 		 * editor for each cell.  If we didn't implement this method,
 		 * then the last column would contain text ("true"/"false"),
 		 * rather than a check box.
+		 * Special case fixes problem of empty cells causing null pointer exceptions
 		 */
 		public Class getColumnClass(int c) {
+			if(getValueAt(0,c)== null){
+				return (new String("")).getClass();
+			}
 			return getValueAt(0, c).getClass();
 		}
 
@@ -448,13 +464,17 @@ public class PaperManager extends JPanel implements ActionListener{
 
 		JMenuBar menubar = new JMenuBar();
 		JMenu menu = new JMenu("File");
-		JMenuItem mi1 = new JMenuItem("Import .bib file (unimplemented)");
-		JMenuItem mi2 = new JMenuItem("Export .bib file (unimplemented)");
+		JMenuItem miImport = new JMenuItem("Import .bib file (unimplemented)");
+		miImport.setActionCommand(IMP_CMD);
+		miImport.addActionListener(newContentPane);
+		JMenuItem miExport = new JMenuItem("Export .bib file (unimplemented)");
+		miExport.setActionCommand(EXP_CMD);
+		miExport.addActionListener(newContentPane);
 		JMenuItem miLast = new JMenuItem("Exit");
 		miLast.setActionCommand(EXIT);
 		miLast.addActionListener(newContentPane);
-		menu.add(mi1);
-		menu.add(mi2);
+		menu.add(miImport);
+		menu.add(miExport);
 		menu.add(miLast);
 		
 		menubar.add(menu);
@@ -471,18 +491,6 @@ public class PaperManager extends JPanel implements ActionListener{
 	}
 
 	public static void main(String[] args) {
-//		System.out.println("os: " + System.getProperty("os.name"));
-//		System.out.println("arch: " + System.getProperty("os.arch"));
-//		System.out.println("version: " + System.getProperty("os.property"));
-		
-//		try{
-//			// TODO Play with this in OSX -- works either with system or crossplatform in linux!
-//		UIManager.setLookAndFeel(
-//	            UIManager.getCrossPlatformLookAndFeelClassName());
-//		}catch(Exception e){
-//			fatal(e, "ERROR: could not set window \"look and feel\"");
-//		}
-		
 		//Schedule a job for the event-dispatching thread:
 		//creating and showing this application's GUI.
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {

@@ -64,6 +64,8 @@ public class Paper {
 	}
 	
 	public String getField(String key){
+		String ret = bib.getField(key);
+		if(ret == null) return "";
 		return bib.getField(key);
 	}
 	
