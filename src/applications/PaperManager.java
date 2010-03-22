@@ -24,6 +24,7 @@ import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -31,6 +32,7 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JLabel;
 import javax.swing.JToolBar;
+import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
@@ -54,18 +56,20 @@ import java.util.Set;
 
 /*
  * This is started based on the TableDemo on the swing tutorial site.
- * TODO (High) Configuration directory and files
+ * TODO (High) Configuration directory and files (cross-platform)
+ * TODO (High) Tag editor: Have text area - type then hit enter to add to list!
  * TODO (High) Add importation of bibtex files
+ * TODO (High) Link to PDFs
  * TODO Add exportation of bibtex files
  * TODO Separate "card" (?) for unclassified PDFs
  * TODO Auto-scan dropbox directory for new pdfs
- * TODO Link to PDFs
+ * TODO (Low) Have "add paper" button open a dialog to fill in? (use table only for small edits)
+ *      Low because most papers will be added w/ bibtex for the time being
  * TODO (low) Make division between gui elements thicker (prettier)
  * TODO (low) Make "tag add" button put you in new tag editing mode (no double click required) 
  */
 
 public class PaperManager extends JPanel implements ActionListener{
-	private boolean DEBUG = true;
 	private static final String ADD_CMD = "ADD";
 	private static final String RM_CMD = "RM";
 	private static final String IMP_CMD = "IMPORT";
@@ -74,7 +78,7 @@ public class PaperManager extends JPanel implements ActionListener{
 	private static final String ADD_TAG_CMD = "ADD_TAG";
 	private static final String EXIT = "EXIT";
 	private static final String DB_LOC_KEY = "DB_LOC";
-	private static String configurationFile = "/Users/tmill/.papermanager";
+	private static String configurationFilename = "/Users/tmill/.papermanager";
 	private ArrayList<Paper> paperList=null;
 	PaperFileWriter writer = null;
 	PaperFileReader pfr = null;
@@ -370,58 +374,64 @@ public class PaperManager extends JPanel implements ActionListener{
 		JFrame frame = new JFrame("Paper Manager");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
-		configurationFile = System.getProperty("user.home") + "/.papermanager";
-		File confFile = new File(configurationFile);
+		// first read conf file (or create if doesn't exist)
+		configurationFilename = System.getProperty("user.home") + "/.papermanager";
+		File confFile = new File(configurationFilename);
 		
 		// if it doesn't exist create it (have to ask for db_dir location)
 		if(!confFile.exists()){
 			try {
 				confFile.createNewFile();
 			} catch (IOException e) {
-				System.err.println("Error creating configuration file: " + confFile.getPath());
-				e.printStackTrace();
-				System.exit(-1);
+				fatal(e, "Error creating configuration file: " + confFile.getPath());
 			}
 		}
 		
+		// load properties whether or not the file has any (like if we just created it above)
 		Properties props = new Properties();
 		try {
-			props.load(new FileInputStream(configurationFile));
+			props.load(new FileInputStream(configurationFilename));
 		} catch (FileNotFoundException e1) {
-			System.err.println("ERROR: Could not find file: " + configurationFile);
-			e1.printStackTrace();
-			System.exit(-1);
+			fatal(e1, "ERROR: Could not find file: " + configurationFilename);
 		} catch (IOException e1) {
-			System.err.println("ERROR: Could not handle file: " + configurationFile);
-			e1.printStackTrace();
-			System.exit(-1);
+			fatal(e1, "ERROR: Could not handle file: " + configurationFilename);
 		}
 		
+		// if we have no properties (only property right now is path to folder w/ pdfs and papers.xml)
+		// then we bring up a file dialog... this is tricky across different platforms i guess?
 		if(!props.containsKey(DB_LOC_KEY)){
-//			JFileChooser fileChooser = new JFileChooser();
-//			fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-			System.setProperty("apple.awt.fileDialogForDirectories", "true");
+			String dbDir="";
+			
+			
+			JFileChooser fileChooser = new JFileChooser();
+			fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			int ret = fileChooser.showOpenDialog(null);
+			if(ret == JFileChooser.APPROVE_OPTION){
+				dbDir = fileChooser.getSelectedFile().getPath();
+			}else{
+				JOptionPane.showMessageDialog(null, "Error: No directory selected.  Please figure out what directory you would like and re-run.", "Alert", JOptionPane.WARNING_MESSAGE);
+				System.exit(0);
+			}
+			
+/*			// works in os x, not in linux!
+			System.setProperty("linux.awt.fileDialogForDirectories", "true");
 			FileDialog fileDialog = new FileDialog(frame);
 			fileDialog.setDirectory(System.getProperty("user.home"));
 			fileDialog.setVisible(true);
-//			int ret = fileChooser.showDialog(frame, "Select");
-			String dbDir= fileDialog.getDirectory() + fileDialog.getFile();
-//			if(ret == JFileChooser.APPROVE_OPTION){
-//				File dbFile = fileChooser.getSelectedFile();
-//				dbDir = dbFile.getPath();
-//			}else{
-//				System.err.println("Cannot continue without knowing directory!");
-//				System.exit(-1);
-//			}
+			String dir = fileDialog.getDirectory();
+			String fn = fileDialog.getFile();
+			String dbDir = dir;
+			if(fn != null){
+				dbDir += fn;
+			}
+*/
 			props.setProperty(DB_LOC_KEY, dbDir);
 			try {
 				props.store(new FileOutputStream(confFile), null);
 			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-				System.exit(-1);
+				fatal(e, "ERROR: Could not find file: " + confFile.getAbsolutePath());
 			} catch (IOException e) {
-				e.printStackTrace();
-				System.exit(-1);
+				fatal(e, "ERROR: Cannot store properties in file: " + confFile.getAbsolutePath());
 			}
 		}
 		
@@ -434,9 +444,7 @@ public class PaperManager extends JPanel implements ActionListener{
 			try {
 				dbFile.createNewFile();
 			} catch (IOException e) {
-				System.err.println("ERROR: Could not create file: " + dbFile.getPath());
-				e.printStackTrace();
-				System.exit(-1);
+				fatal(e, "ERROR: Could not create file: " + dbFile.getPath());
 			}
 		}
 		
@@ -452,7 +460,6 @@ public class PaperManager extends JPanel implements ActionListener{
 		menu.add(mi1);
 		menu.add(mi2);
 		menu.add(miLast);
-		//menu.addActionListener(newContentPane);
 		
 		menubar.add(menu);
 		
@@ -468,8 +475,17 @@ public class PaperManager extends JPanel implements ActionListener{
 	}
 
 	public static void main(String[] args) {
-		// first read conf file (or create if doesn't exist)
-
+//		System.out.println("os: " + System.getProperty("os.name"));
+//		System.out.println("arch: " + System.getProperty("os.arch"));
+//		System.out.println("version: " + System.getProperty("os.property"));
+		
+		try{
+			// TODO Play with this in OSX -- works either with system or crossplatform in linux!
+		UIManager.setLookAndFeel(
+	            UIManager.getSystemLookAndFeelClassName());
+		}catch(Exception e){
+			fatal(e, "ERROR: could not set window \"look and feel\"");
+		}
 		
 		//Schedule a job for the event-dispatching thread:
 		//creating and showing this application's GUI.
@@ -480,5 +496,9 @@ public class PaperManager extends JPanel implements ActionListener{
 		});
 	}
 
+	private static void fatal(Exception e, String s){
+		e.printStackTrace();
+		System.err.println(s);
+	}
 
 }
