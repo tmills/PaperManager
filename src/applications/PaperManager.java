@@ -31,6 +31,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JLabel;
+import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
@@ -75,7 +76,7 @@ public class PaperManager extends JPanel implements ActionListener{
 	private static final String IMP_CMD = "IMPORT";
 	private static final String EXP_CMD = "EXPORT";
 	private static final String WRITE_CMD = "WRITE";
-	private static final String ADD_TAG_CMD = "ADD_TAG";
+	private static final String NEW_TAG = "NEW_TAG";
 	private static final String EXIT = "EXIT";
 	private static final String DB_LOC_KEY = "DB_LOC";
 	private static String configurationFilename = "/Users/tmill/.papermanager";
@@ -84,6 +85,7 @@ public class PaperManager extends JPanel implements ActionListener{
 	PaperFileReader pfr = null;
 	JTable table;
 	JTextArea summaryBox=null;
+	JTextField tagField=null;
 	RefTableModel tModel;
 	TagTableModel tagModel;
 	
@@ -136,23 +138,15 @@ public class PaperManager extends JPanel implements ActionListener{
 		tagModel = new TagTableModel();
 		JTable tagList = new JTable(tagModel);
 		JPanel tagPanel = new JPanel(new BorderLayout());
-		JToolBar tagTools = new JToolBar("Tag Tools");
-		JButton addTagButton = new JButton();
-		addTagButton.setText(" + ");
-		addTagButton.addActionListener(this);
-		addTagButton.setActionCommand(ADD_TAG_CMD);
-		tagTools.add(addTagButton);
-		tagPanel.add(new JLabel("Tag Editor"), BorderLayout.NORTH);
+		tagField = new JTextField();
+		tagField.setActionCommand(NEW_TAG);
+		tagField.addActionListener(this);
 		tagPanel.add(new JScrollPane(tagList), BorderLayout.CENTER);
-		tagPanel.add(tagTools, BorderLayout.SOUTH);
+		tagPanel.add(tagField, BorderLayout.SOUTH);
 		tagPanel.setPreferredSize(new Dimension(200, 300));
 		
 		// make a split pane?
-		JSplitPane sidePanel = new JSplitPane(JSplitPane.VERTICAL_SPLIT, summaryPanel, tagPanel); 
-//new GridLayout(2,1));
-//		sidePanel.add(summaryPanel, "1");
-//		sidePanel.add(tagPanel, "2");
-		
+		JSplitPane sidePanel = new JSplitPane(JSplitPane.VERTICAL_SPLIT, summaryPanel, tagPanel); 		
 		
 		//Add the scroll pane to this panel.
 		add(toolbar, BorderLayout.NORTH);
@@ -184,10 +178,11 @@ public class PaperManager extends JPanel implements ActionListener{
 			Paper selPaper = paperList.get(row);
 			selPaper.setField("summary", summaryBox.getText());
 			writer.writeFile(paperList);
-		}else if(arg0.getActionCommand().equals(ADD_TAG_CMD)){
-//			System.err.println("Add tag command triggered");
+		}else if(arg0.getActionCommand().equals(NEW_TAG)){
+//			System.err.println("New tag command triggered");
 			int row = table.getSelectedRow();
-			tagModel.addTag(row);
+			tagModel.addTag(row, tagField.getText());
+			tagField.setText("");
 		}else if(arg0.getActionCommand().equals(EXIT)){
 //			System.err.println("Exit pressed!");
 			System.exit(0);
@@ -326,9 +321,10 @@ public class PaperManager extends JPanel implements ActionListener{
 			fireTableDataChanged();
 		}
 		
-		public void addTag(int row) {
-			paperList.get(row).addTag("*NEW* Double click to edit");
+		public void addTag(int row, String text) {
+			paperList.get(row).addTag(text);
 			setData(paperList.get(row).getTags());
+			writer.writeFile(paperList);
 		}
 
 		public void setValueAt(Object newData, int row, int col){
