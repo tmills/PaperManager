@@ -59,13 +59,13 @@ import java.util.Set;
 
 /*
  * This is started based on the TableDemo on the swing tutorial site.
- * TODO (High) Add importation of bibtex files
  * TODO (High) Link to PDFs
- * TODO Add exportation of bibtex files
- * TODO Separate "card" (?) for unclassified PDFs
- * TODO Auto-scan dropbox directory for new pdfs
- * TODO (Low) Have "add paper" button open a dialog to fill in? (use table only for small edits)
+ * TODO (High) Add exportation of bibtex files (need for thesis since I've started using this tool)
+ * TODO (High) Have "add paper" button open a dialog to fill in? (use table only for small edits)
  *      Low because most papers will be added w/ bibtex for the time being
+ *      High because no way to edit hidden fields
+ * TODO Separate "card" (?) for unclassified PDFs
+ * TODO Auto-scan dropbox directory for new pdfs and add to 2nd card
  * TODO (low) Make division between gui elements thicker (prettier)
  */
 
