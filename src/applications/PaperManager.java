@@ -19,6 +19,7 @@ package applications;
 
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -34,21 +35,26 @@ import javax.swing.JTextArea;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
+import javax.swing.SpringLayout;
 import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 
+import bib.BibEntry;
 import bib.BibtexFileReader;
 import bib.BibtexFileWriter;
 
 import papers.*;
 import tags.Tag;
+import ui.BibEditorDialog;
 import ui.MyFileChooser;
+import ui.SpringUtilities;
 
 import java.awt.BorderLayout;
 import java.awt.Desktop;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -58,18 +64,17 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
 /*
  * This is started based on the TableDemo on the swing tutorial site.
- * TODO (High) Add exportation of bibtex files (need for thesis since I've started using this tool)
  * TODO (High) Have "add paper" button open a dialog to fill in? (use table only for small edits)
  *      Low because most papers will be added w/ bibtex for the time being
  *      High because no way to edit hidden fields
- * TODO Open linked PDFs natively
  * TODO Visual reminder to save summary (grayed out save button when fresh?  greyed text area?)
- * TODO Separate "card" (?) for unclassified PDFs
+ * TODO Right-click context menu (edit, link, ?)
  * TODO Auto-scan dropbox directory for new pdfs and add to 2nd card
  * TODO (low) Make division between gui elements thicker (prettier)
  */
@@ -83,6 +88,9 @@ public class PaperManager extends JPanel implements ActionListener{
 	private static final String EXP_CMD = "EXPORT";
 	private static final String WRITE_CMD = "WRITE";
 	private static final String NEW_TAG = "NEW_TAG";
+	private static final String EDIT_CMD = "EDIT";
+	private static final String CANCEL_EDIT = "CANCEL";
+	private static final String SAVE_EDIT = "SAVE_EDIT";
 	private static final String EXIT = "EXIT";
 	private static final String DB_LOC_KEY = "DB_LOC";
 	private static String configurationFilename = "/Users/tmill/.papermanager";
@@ -157,6 +165,12 @@ public class PaperManager extends JPanel implements ActionListener{
 		button.setText("-->");
 		button.addActionListener(this);
 		button.setActionCommand(OPEN_CMD);
+		toolbar.add(button);
+
+		button = new JButton();
+		button.setText("Edit");
+		button.addActionListener(this);
+		button.setActionCommand(EDIT_CMD);
 		toolbar.add(button);
 		
 		// add table
@@ -242,7 +256,7 @@ public class PaperManager extends JPanel implements ActionListener{
 				}
 			}
 		}else if(arg0.getActionCommand().equals(IMP_CMD)){
-			System.err.println("Import command triggered");
+//			System.err.println("Import command triggered");
 			String fn="";
 			if(bibReader == null) bibReader = new BibtexFileReader();
 			JFileChooser fc = new JFileChooser();
@@ -293,6 +307,21 @@ public class PaperManager extends JPanel implements ActionListener{
 				tModel.fireTableCellUpdated(row, PDF_COL);
 				writer.writeFile(paperList);
 			}
+		}else if(arg0.getActionCommand().equals(EDIT_CMD)){
+//			System.err.println("Edit command triggered");
+			int row = table.getSelectedRow();
+			if(row >= 0){
+//				editBibentry(paperList.get(row));
+				BibEditorDialog dialog = new BibEditorDialog(paperList.get(row).getEntry());
+				dialog.show();
+				tModel.loadData();
+				tModel.fireTableRowsUpdated(row, row);
+				writer.writeFile(paperList);
+			}
+		}else if(arg0.getActionCommand().equals(CANCEL_EDIT)){
+			System.err.println("Cancel pressed.");
+		}else if(arg0.getActionCommand().equals(SAVE_EDIT)){
+			System.err.println("Save pressed.");
 		}else if(arg0.getActionCommand().equals(EXIT)){
 //			System.err.println("Exit pressed!");
 			System.exit(0);
@@ -482,6 +511,81 @@ public class PaperManager extends JPanel implements ActionListener{
 	private void noDesktop(JPanel parent){
 		JOptionPane.showMessageDialog(parent, sorryMsg);
 	}
+
+	// TODO 
+	private void editBibentry(Paper paper){
+		JFrame owner = (JFrame) this.getTopLevelAncestor();
+		JDialog dialog = new JDialog(owner);
+		BibEntry entry = paper.getEntry();
+		int fieldWidth = 20;
+		
+		Map<String,String> fields = entry.getFields();
+		int rows = 2 + fields.size() + 1; //type,label,fields,new
+		int cols = 2;
+		
+		dialog.setModal(true);
+//		GridLayout layout = new GridLayout(0, 2);
+		JPanel editPanel = new JPanel(new SpringLayout());
+//		System.err.println("hgap : " + layout.getHgap());
+//		System.err.println("vgap : " + layout.getVgap());
+		
+		JLabel label; JTextField field;
+		// label label
+		label = new JLabel("Label", JLabel.TRAILING);
+		editPanel.add(label);
+		// label field
+		field = new JTextField(entry.getLabel(), fieldWidth);
+		field.setCaretPosition(0);
+		label.setLabelFor(field);
+		editPanel.add(field);
+		// type label
+		label = new JLabel("Type", JLabel.TRAILING);
+		editPanel.add(label);
+		// type field
+		field = new JTextField(entry.getType(), fieldWidth);
+		field.setCaretPosition(0);
+		label.setLabelFor(field);
+		editPanel.add(field);
+		for(String key : fields.keySet()){
+			String value = fields.get(key);
+			label = new JLabel(key, JLabel.TRAILING);
+			editPanel.add(label);
+			field = new JTextField(value, fieldWidth);
+			field.setCaretPosition(0);
+			label.setLabelFor(field);
+			editPanel.add(field);
+		}
+		
+		field = new JTextField(5);
+		field.addActionListener(this);
+		editPanel.add(field);
+		field = new JTextField(10);
+		field.addActionListener(this);
+		editPanel.add(field);
+		SpringUtilities.makeCompactGrid(editPanel, rows, cols, 5, 5, 5, 5);
+//		dialog.setPreferredSize(new Dimension(400, 300));
+		
+		JSplitPane pane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+		pane.add(editPanel);
+		
+		JPanel buttonPanel = new JPanel(new FlowLayout());
+		JButton cancel = new JButton("Cancel");
+		cancel.setActionCommand(CANCEL_EDIT);
+		cancel.addActionListener(this);
+		JButton save = new JButton("Save");
+		save.addActionListener(this);
+		save.setActionCommand(SAVE_EDIT);
+		buttonPanel.add(cancel);
+		buttonPanel.add(save);
+		pane.add(buttonPanel);
+		
+		
+		dialog.add(pane);
+		dialog.setResizable(false);
+		dialog.pack();
+		dialog.setVisible(true);
+	}
+	
 	/**
 	 * Create the GUI and show it.  For thread safety,
 	 * this method should be invoked from the
@@ -569,8 +673,8 @@ public class PaperManager extends JPanel implements ActionListener{
 		PaperManager newContentPane = new PaperManager(dbFile.getPath());
 
 		JMenuBar menubar = new JMenuBar();
-		JMenu menu = new JMenu("File");
-		JMenuItem miImport = new JMenuItem("Import .bib file");
+		JMenu fileMenu = new JMenu("File");
+		JMenuItem miImport = new JMenuItem("Import .bib file (unimplemented)");
 		miImport.setActionCommand(IMP_CMD);
 		miImport.addActionListener(newContentPane);
 		JMenuItem miExport = new JMenuItem("Export .bib file (unimplemented)");
@@ -579,11 +683,17 @@ public class PaperManager extends JPanel implements ActionListener{
 		JMenuItem miLast = new JMenuItem("Exit");
 		miLast.setActionCommand(EXIT);
 		miLast.addActionListener(newContentPane);
-		menu.add(miImport);
-		menu.add(miExport);
-		menu.add(miLast);
+		fileMenu.add(miImport);
+		fileMenu.add(miExport);
+		fileMenu.add(miLast);
 		
-		menubar.add(menu);
+		JMenu editMenu = new JMenu("Edit");
+		JMenuItem miEdit = new JMenuItem("Edit paper info (under development)");
+		miEdit.setActionCommand(EDIT_CMD);
+		miEdit.addActionListener(newContentPane);
+		editMenu.add(miEdit);
+		menubar.add(fileMenu);
+		menubar.add(editMenu);
 		
 		frame.setJMenuBar(menubar);
 

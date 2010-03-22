@@ -56,6 +56,10 @@ public class Paper {
 		bib.setLabel(l);
 	}
 	
+	public BibEntry getEntry(){
+		return bib;
+	}
+	
 	public void addTag(String t){
 		tags.add(new Tag(t));
 	}
