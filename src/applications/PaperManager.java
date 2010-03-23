@@ -40,6 +40,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 
 import bib.BibtexFileReader;
+import bib.BibtexFileWriter;
 
 import papers.*;
 import tags.Tag;
@@ -90,6 +91,7 @@ public class PaperManager extends JPanel implements ActionListener{
 	PaperFileWriter writer = null;
 	PaperFileReader pfr = null;
 	BibtexFileReader bibReader = null;
+	BibtexFileWriter bibWriter = null;
 	JTable table;
 	JTextArea summaryBox=null;
 	JTextField tagField=null;
@@ -141,7 +143,7 @@ public class PaperManager extends JPanel implements ActionListener{
 		button.setActionCommand(RM_CMD);
 		toolbar.add(button);
 		// put in a spacer so we don't accidentally hit remove!
-		toolbar.addSeparator();
+		toolbar.addSeparator(new Dimension(100,10));
 		
 		button = new JButton();
 		button.setText("Link");
@@ -253,6 +255,18 @@ public class PaperManager extends JPanel implements ActionListener{
 			}
 		}else if(arg0.getActionCommand().equals(EXP_CMD)){
 			System.err.println("Export command triggered");
+			String fn="";
+			if(bibWriter == null) bibWriter = new BibtexFileWriter();
+			JFileChooser fc = new JFileChooser();
+			fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+			int ret = fc.showSaveDialog(table);
+			if(ret == JFileChooser.APPROVE_OPTION){
+				fn = fc.getSelectedFile().getPath();
+				boolean success = bibWriter.writeFile(fn, paperList);
+				if(!success){
+					JOptionPane.showMessageDialog(this, "ERROR Exporting bib file: Please see stack trace.");
+				}
+			}
 		}else if(arg0.getActionCommand().equals(WRITE_CMD)){
 			System.err.println("Write command triggered");
 			int row = table.getSelectedRow();

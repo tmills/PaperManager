@@ -37,6 +37,10 @@ public class Paper {
 		tags = new LinkedHashSet<Tag>();
 	}
 
+	public Set<String> getFields(){
+		return bib.getFields().keySet();
+	}
+	
 	public String getType(){
 		return bib.getType();
 	}
