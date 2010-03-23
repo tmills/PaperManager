@@ -29,6 +29,7 @@ import bib.BibEntry;
 public class Paper {
 	BibEntry bib=null;
 	HashSet<Tag> tags=null;
+	String summary=null;
 	File fp=null;
 	
 	public Paper(){
@@ -57,6 +58,14 @@ public class Paper {
 	
 	public Set<Tag> getTags(){
 		return tags;
+	}
+	
+	public void setSummary(String s){
+		summary = s;
+	}
+	
+	public String getSummary(){
+		return summary;
 	}
 	
 	public void setField(String key, String val){
@@ -111,16 +120,26 @@ public class Paper {
 		StringBuilder out = new StringBuilder();
 		HashMap<String,String> fields = bib.getFields();
 		out.append("<paper>\n");
-		out.append("\t<type>" + bib.getType() + "</type>\n");
-		out.append("\t<label>" + bib.getLabel() + "</label>\n");
+		out.append("\t<bibentry>\n");
+		out.append("\t\t<type>" + bib.getType() + "</type>\n");
+		out.append("\t\t<label>" + bib.getLabel() + "</label>\n");
 		for(String key : fields.keySet()){
-			out.append("\t<" + key + ">" + fields.get(key) + "</" + key + ">\n");
+			out.append("\t\t<" + key + ">" + fields.get(key) + "</" + key + ">\n");
 		}
-		out.append("\t<taglist>\n");
-		for(Tag tag : tags){
-			out.append("\t\t<tag>" + tag.getTag() + "</tag>\n");
+		out.append("\t</bibentry>\n");
+		if(summary != null){
+			out.append("\t<summary>" + summary + "</summary>\n");
 		}
-		out.append("\t</taglist>\n");
+		if(tags.size() > 0){
+			out.append("\t<taglist>\n");
+			for(Tag tag : tags){
+				out.append("\t\t<tag>" + tag.getTag() + "</tag>\n");
+			}
+			out.append("\t</taglist>\n");
+		}
+		if(fp != null){
+			out.append("\t<filename>" + fp.getName() + "</filename>\n");
+		}
 		out.append("</paper>");
 		return out.toString();
 	}

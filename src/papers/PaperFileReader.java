@@ -16,6 +16,7 @@
  */
 package papers;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,10 +34,13 @@ public class PaperFileReader {
 	Paper current;
 	
 	private boolean inPaper = false;
+	private boolean inBib = false;
 	private boolean inTaglist = false;
 	private boolean inTag = false;
 	private boolean inLabel = false;
 	private boolean inType = false;
+	private boolean inSummary = false;
+	private boolean inFile = false;
 	StringBuilder name = null;
 	HashMap<String,Boolean> stateTracker = new HashMap<String,Boolean>();
 	
@@ -49,11 +53,19 @@ public class PaperFileReader {
 				inPaper = true;
 				current = new Paper();
 				paperList.add(current);
+			}else if(tagName.equalsIgnoreCase("bibentry")){
+				inBib = true;
 			}else if(tagName.equalsIgnoreCase("type")){
 				inType = true;
 				name = new StringBuilder();
 			}else if(tagName.equalsIgnoreCase("label")){
 				inLabel = true;
+				name = new StringBuilder();
+			}else if(tagName.equalsIgnoreCase("summary")){
+				inSummary = true;
+				name = new StringBuilder();
+			}else if(tagName.equalsIgnoreCase("filename")){
+				inFile = true;
 				name = new StringBuilder();
 			}else if(tagName.equalsIgnoreCase("taglist")){
 				// not really necessary, but keeps us out of inPaper case...
@@ -61,22 +73,10 @@ public class PaperFileReader {
 			}else if(tagName.equalsIgnoreCase("tag")){
 				inTag = true;
 				name = new StringBuilder();
-			}else if(inPaper){
+			}else if(inBib){
 				stateTracker.put(tagName.toLowerCase(), true);
 				name = new StringBuilder();
-			}
-			
-			/*
-			}else if(tagName.equalsIgnoreCase("title")){
-				inTitle = true;
-				name = new StringBuilder();
-			}else if(tagName.equalsIgnoreCase("authors")){
-				inAuthors = true;
-				name = new StringBuilder();
-			}else if(tagName.equalsIgnoreCase("type")){
-				inType = true;
-				name = new StringBuilder();
-			}*/
+			}			
 		}
 		
 		public void endElement(String nsURI, String strippedName,	String tagName){
@@ -84,6 +84,8 @@ public class PaperFileReader {
 				current = null;
 				name = null;
 				inPaper = false;
+			}else if(tagName.equalsIgnoreCase("bibentry")){
+				inBib = false;
 			}else if(tagName.equalsIgnoreCase("type")){
 				inType = false;
 				current.setType(name.toString());
@@ -92,31 +94,27 @@ public class PaperFileReader {
 				inLabel = false;
 				current.setLabel(name.toString());
 				name = null;
+			}else if(tagName.equalsIgnoreCase("summary")){
+				inSummary = false;
+				current.setSummary(name.toString());
+				name = null;
+			}else if(tagName.equalsIgnoreCase("filename")){
+				inFile = false;
+				current.setFile(new File(name.toString()));
+				name = null;
 			}else if(tagName.equalsIgnoreCase("taglist")){
 				inTaglist = false;
 			}else if(tagName.equalsIgnoreCase("tag")){
 				current.addTag(name.toString());
 				inTag = false;
-			}else if(stateTracker.containsKey(tagName.toLowerCase())){
+			}else if(inBib && stateTracker.containsKey(tagName.toLowerCase())){
 				stateTracker.put(tagName.toLowerCase(), false);
 				if(name == null){
 					System.err.println("Error in herre.");
 				}
 				current.setField(tagName.toLowerCase(), name.toString());
 				name = null;
-			}
-			
-			/*
-			}else if(tagName.equalsIgnoreCase("title")){
-				inTitle = false;
-				current.setTitle(name.toString());
-			}else if(tagName.equalsIgnoreCase("authors")){
-				inAuthors = false;
-				current.setAuthors(name.toString());
-			}else if(tagName.equalsIgnoreCase("type")){
-				inType = false;
-				current.setType(name.toString());
-			}*/
+			}			
 		}
 		
 		public void characters(char[] ch, int start, int length){

@@ -45,8 +45,8 @@ import papers.*;
 import tags.Tag;
 
 import java.awt.BorderLayout;
+import java.awt.Desktop;
 import java.awt.Dimension;
-import java.awt.FileDialog;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -60,11 +60,12 @@ import java.util.Set;
 
 /*
  * This is started based on the TableDemo on the swing tutorial site.
- * TODO (High) Link to PDFs
  * TODO (High) Add exportation of bibtex files (need for thesis since I've started using this tool)
  * TODO (High) Have "add paper" button open a dialog to fill in? (use table only for small edits)
  *      Low because most papers will be added w/ bibtex for the time being
  *      High because no way to edit hidden fields
+ * TODO Open linked PDFs natively
+ * TODO Visual reminder to save summary (grayed out save button when fresh?  greyed text area?)
  * TODO Separate "card" (?) for unclassified PDFs
  * TODO Auto-scan dropbox directory for new pdfs and add to 2nd card
  * TODO (low) Make division between gui elements thicker (prettier)
@@ -73,6 +74,8 @@ import java.util.Set;
 public class PaperManager extends JPanel implements ActionListener{
 	private static final String ADD_CMD = "ADD";
 	private static final String RM_CMD = "RM";
+	private static final String LINK_CMD = "LINK";
+	private static final String OPEN_CMD = "OPEN";
 	private static final String IMP_CMD = "IMPORT";
 	private static final String EXP_CMD = "EXPORT";
 	private static final String WRITE_CMD = "WRITE";
@@ -80,6 +83,9 @@ public class PaperManager extends JPanel implements ActionListener{
 	private static final String EXIT = "EXIT";
 	private static final String DB_LOC_KEY = "DB_LOC";
 	private static String configurationFilename = "/Users/tmill/.papermanager";
+	String sorryMsg = "Sorry, this platform does not support " +
+	  "opening PDFs from within the table.  " +
+	  "Everything else should work fine though!";
 	private ArrayList<Paper> paperList=null;
 	PaperFileWriter writer = null;
 	PaperFileReader pfr = null;
@@ -89,11 +95,32 @@ public class PaperManager extends JPanel implements ActionListener{
 	JTextField tagField=null;
 	RefTableModel tModel;
 	TagTableModel tagModel;
+	String rootDir;
+	Desktop desktop=null;
+	private int LABEL_COL;
+	private int TYPE_COL;
+	private int VENUE_COL;
+	private int PDF_COL;
 	
 	public PaperManager(String fn) {
 		
 		super(new BorderLayout());
-
+		try{
+			if(!Desktop.isDesktopSupported()){
+				// this is a problem on some platforms
+				noDesktop(this);
+			}else{
+				desktop = Desktop.getDesktop();
+				if(!desktop.isSupported(Desktop.Action.OPEN)){
+					noDesktop(this);
+					desktop = null;
+				}
+			}
+		}catch(UnsupportedOperationException e){
+			// apparently this is a possibility with older apis?
+			noDesktop(this);
+		}
+		rootDir = (new File(fn)).getParent();
 		// initialize data structures
 		pfr = new PaperFileReader(fn);
 		paperList = pfr.readFile();
@@ -113,7 +140,21 @@ public class PaperManager extends JPanel implements ActionListener{
 		button.addActionListener(this);
 		button.setActionCommand(RM_CMD);
 		toolbar.add(button);
-
+		// put in a spacer so we don't accidentally hit remove!
+		toolbar.addSeparator();
+		
+		button = new JButton();
+		button.setText("Link");
+		button.addActionListener(this);
+		button.setActionCommand(LINK_CMD);
+		toolbar.add(button);
+		
+		button = new JButton();
+		button.setText("-->");
+		button.addActionListener(this);
+		button.setActionCommand(OPEN_CMD);
+		toolbar.add(button);
+		
 		// add table
 		table = new RefTable(tModel);
 
@@ -177,6 +218,25 @@ public class PaperManager extends JPanel implements ActionListener{
 			tModel.loadData();
 			tModel.fireTableDataChanged();
 			writer.writeFile(paperList);
+		}else if(arg0.getActionCommand().equals(OPEN_CMD)){
+			System.err.println("Open button has been pressed.");
+			if(desktop != null){
+				File f = paperList.get(table.getSelectedRow()).getFile();
+				if(f != null){
+					try {
+						System.err.println("Opening: " + f);
+						File fullP = new File(rootDir + "/" + f.getName());
+						if(fullP.exists()){
+							desktop.open(fullP);
+						}
+					} catch (IOException e) {
+						JOptionPane.showMessageDialog(this, "Sorry, could not open file!", "Error", ERROR);
+//						e.printStackTrace();
+					}
+				}else{
+					System.err.println("No file associated with that paper!");
+				}
+			}
 		}else if(arg0.getActionCommand().equals(IMP_CMD)){
 			System.err.println("Import command triggered");
 			String fn="";
@@ -189,7 +249,7 @@ public class PaperManager extends JPanel implements ActionListener{
 				bibReader.readFile(fn, paperList);
 				tModel.loadData();
 				tModel.fireTableDataChanged();
-				//writer.writeFile(paperList);
+				writer.writeFile(paperList);
 			}
 		}else if(arg0.getActionCommand().equals(EXP_CMD)){
 			System.err.println("Export command triggered");
@@ -197,13 +257,26 @@ public class PaperManager extends JPanel implements ActionListener{
 			System.err.println("Write command triggered");
 			int row = table.getSelectedRow();
 			Paper selPaper = paperList.get(row);
-			selPaper.setField("summary", summaryBox.getText());
+//			selPaper.setField("summary", summaryBox.getText());
+			selPaper.setSummary(summaryBox.getText());
 			writer.writeFile(paperList);
 		}else if(arg0.getActionCommand().equals(NEW_TAG)){
 //			System.err.println("New tag command triggered");
 			int row = table.getSelectedRow();
 			tagModel.addTag(row, tagField.getText());
 			tagField.setText("");
+		}else if(arg0.getActionCommand().equals(LINK_CMD)){
+			System.err.println("Link command triggered");
+			JFileChooser fc = new JFileChooser(rootDir);
+			fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+			int ret = fc.showOpenDialog(table);
+			if(ret == JFileChooser.APPROVE_OPTION){
+				int row = table.getSelectedRow();
+				paperList.get(row).setFile(fc.getSelectedFile());
+				tModel.loadData();
+				tModel.fireTableCellUpdated(row, PDF_COL);
+				writer.writeFile(paperList);
+			}
 		}else if(arg0.getActionCommand().equals(EXIT)){
 //			System.err.println("Exit pressed!");
 			System.exit(0);
@@ -225,7 +298,7 @@ public class PaperManager extends JPanel implements ActionListener{
 				int row = dlsm.getAnchorSelectionIndex();
 				if(row >= 0){
 					Paper curr = paperList.get(row);
-					summaryBox.setText(curr.getField("summary"));
+					summaryBox.setText(curr.getSummary());
 					tagModel.setData(curr.getTags());
 				}
 			}
@@ -233,10 +306,6 @@ public class PaperManager extends JPanel implements ActionListener{
 	}
 	
 	class RefTableModel extends AbstractTableModel{
-		private int LABEL_COL;
-		private int TYPE_COL;
-		private int VENUE_COL;
-		private int PDF_COL;
 		private String[] columnNames = {"Label", "Author(s)",
 				"Title",
 				"Type",
@@ -385,6 +454,9 @@ public class PaperManager extends JPanel implements ActionListener{
 		}
 	}
 	
+	private void noDesktop(JPanel parent){
+		JOptionPane.showMessageDialog(parent, sorryMsg);
+	}
 	/**
 	 * Create the GUI and show it.  For thread safety,
 	 * this method should be invoked from the
@@ -473,7 +545,7 @@ public class PaperManager extends JPanel implements ActionListener{
 
 		JMenuBar menubar = new JMenuBar();
 		JMenu menu = new JMenu("File");
-		JMenuItem miImport = new JMenuItem("Import .bib file (unimplemented)");
+		JMenuItem miImport = new JMenuItem("Import .bib file");
 		miImport.setActionCommand(IMP_CMD);
 		miImport.addActionListener(newContentPane);
 		JMenuItem miExport = new JMenuItem("Export .bib file (unimplemented)");
