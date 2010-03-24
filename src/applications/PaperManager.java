@@ -321,7 +321,7 @@ public class PaperManager extends JPanel implements ActionListener{
 	}
 	
 	class RefTableModel extends AbstractTableModel{
-		private String[] columnNames = {"Label", "Author(s)",
+		private String[] columnNames = {"Label", "Author",
 				"Title",
 				"Type",
 				"Venue",
