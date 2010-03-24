@@ -44,6 +44,7 @@ import bib.BibtexFileWriter;
 
 import papers.*;
 import tags.Tag;
+import ui.MyFileChooser;
 
 import java.awt.BorderLayout;
 import java.awt.Desktop;
@@ -257,7 +258,7 @@ public class PaperManager extends JPanel implements ActionListener{
 			System.err.println("Export command triggered");
 			String fn="";
 			if(bibWriter == null) bibWriter = new BibtexFileWriter();
-			JFileChooser fc = new JFileChooser();
+			MyFileChooser fc = new MyFileChooser();
 			fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 			int ret = fc.showSaveDialog(table);
 			if(ret == JFileChooser.APPROVE_OPTION){
