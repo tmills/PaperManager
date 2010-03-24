@@ -92,7 +92,7 @@ public class Paper {
 		}else if(bib.getType().equalsIgnoreCase("phdthesis")){
 			return bib.getField("institution");
 		}else if(bib.getType().equalsIgnoreCase("techreport")){
-			return bib.getField("techreport");
+			return bib.getField("institution");
 		}else{
 			return "";
 		}
@@ -108,7 +108,7 @@ public class Paper {
 		}else if(bib.getType().equalsIgnoreCase("phdthesis")){
 			bib.setField("institution",v);
 		}else if(bib.getType().equalsIgnoreCase("techreport")){
-			bib.setField("techreport",v);
+			bib.setField("institution",v);
 		}
 	}
 	
@@ -125,26 +125,30 @@ public class Paper {
 		HashMap<String,String> fields = bib.getFields();
 		out.append("<paper>\n");
 		out.append("\t<bibentry>\n");
-		out.append("\t\t<type>" + bib.getType() + "</type>\n");
-		out.append("\t\t<label>" + bib.getLabel() + "</label>\n");
+		out.append("\t\t<type>" + escape(bib.getType()) + "</type>\n");
+		out.append("\t\t<label>" + escape(bib.getLabel()) + "</label>\n");
 		for(String key : fields.keySet()){
-			out.append("\t\t<" + key + ">" + fields.get(key) + "</" + key + ">\n");
+			out.append("\t\t<" + key + ">" + escape(fields.get(key)) + "</" + key + ">\n");
 		}
 		out.append("\t</bibentry>\n");
 		if(summary != null){
-			out.append("\t<summary>" + summary + "</summary>\n");
+			out.append("\t<summary>" + escape(summary) + "</summary>\n");
 		}
 		if(tags.size() > 0){
 			out.append("\t<taglist>\n");
 			for(Tag tag : tags){
-				out.append("\t\t<tag>" + tag.getTag() + "</tag>\n");
+				out.append("\t\t<tag>" + escape(tag.getTag()) + "</tag>\n");
 			}
 			out.append("\t</taglist>\n");
 		}
 		if(fp != null){
-			out.append("\t<filename>" + fp.getName() + "</filename>\n");
+			out.append("\t<filename>" + escape(fp.getName()) + "</filename>\n");
 		}
 		out.append("</paper>");
 		return out.toString();
+	}
+	
+	private String escape(String s){
+		return s.replaceAll("&", "&amp;");
 	}
 }
