@@ -51,6 +51,7 @@ import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -317,6 +318,15 @@ public class PaperManager extends JPanel implements ActionListener{
 					tagModel.setData(curr.getTags());
 				}
 			}
+		}
+		
+		public String getToolTipText(MouseEvent e) {
+            String tip = null;
+            java.awt.Point p = e.getPoint();
+            int rowIndex = rowAtPoint(p);
+            int colIndex = columnAtPoint(p);
+            tip = tModel.getValueAt(rowIndex, colIndex).toString();
+            return tip;
 		}
 	}
 	
