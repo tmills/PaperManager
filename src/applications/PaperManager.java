@@ -162,7 +162,7 @@ public class PaperManager extends JPanel implements ActionListener{
 		toolbar.add(button);
 		
 		button = new JButton();
-		button.setText("-->");
+		button.setText("Open PDF");
 		button.addActionListener(this);
 		button.setActionCommand(OPEN_CMD);
 		toolbar.add(button);
@@ -227,8 +227,10 @@ public class PaperManager extends JPanel implements ActionListener{
 		if(arg0.getActionCommand().equals(ADD_CMD)){
 //			System.err.println("Add button has been pressed!");
 			paperList.add(new Paper());
-			tModel.loadData();
-			tModel.fireTableDataChanged();
+			editPaper(paperList.size()-1);
+//			BibEditorDialog dialog = new BibEditorDialog(
+//			tModel.loadData();
+//			tModel.fireTableDataChanged();
 		}else if(arg0.getActionCommand().equals(RM_CMD)){
 //			System.err.println("Remove button has been pressed!");
 			int row = table.getSelectedRow();
@@ -237,7 +239,7 @@ public class PaperManager extends JPanel implements ActionListener{
 			tModel.fireTableDataChanged();
 			writer.writeFile(paperList);
 		}else if(arg0.getActionCommand().equals(OPEN_CMD)){
-			System.err.println("Open button has been pressed.");
+//			System.err.println("Open button has been pressed.");
 			if(desktop != null){
 				File f = paperList.get(table.getSelectedRow()).getFile();
 				if(f != null){
@@ -270,7 +272,7 @@ public class PaperManager extends JPanel implements ActionListener{
 				writer.writeFile(paperList);
 			}
 		}else if(arg0.getActionCommand().equals(EXP_CMD)){
-			System.err.println("Export command triggered");
+//			System.err.println("Export command triggered");
 			String fn="";
 			if(bibWriter == null) bibWriter = new BibtexFileWriter();
 			MyFileChooser fc = new MyFileChooser();
@@ -284,7 +286,7 @@ public class PaperManager extends JPanel implements ActionListener{
 				}
 			}
 		}else if(arg0.getActionCommand().equals(WRITE_CMD)){
-			System.err.println("Write command triggered");
+//			System.err.println("Write command triggered");
 			int row = table.getSelectedRow();
 			Paper selPaper = paperList.get(row);
 //			selPaper.setField("summary", summaryBox.getText());
@@ -296,7 +298,7 @@ public class PaperManager extends JPanel implements ActionListener{
 			tagModel.addTag(row, tagField.getText());
 			tagField.setText("");
 		}else if(arg0.getActionCommand().equals(LINK_CMD)){
-			System.err.println("Link command triggered");
+//			System.err.println("Link command triggered");
 			JFileChooser fc = new JFileChooser(rootDir);
 			fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 			int ret = fc.showOpenDialog(table);
@@ -311,12 +313,8 @@ public class PaperManager extends JPanel implements ActionListener{
 //			System.err.println("Edit command triggered");
 			int row = table.getSelectedRow();
 			if(row >= 0){
-//				editBibentry(paperList.get(row));
-				BibEditorDialog dialog = new BibEditorDialog(paperList.get(row).getEntry());
-				dialog.show();
-				tModel.loadData();
-				tModel.fireTableRowsUpdated(row, row);
-				writer.writeFile(paperList);
+//				editBibentry(paperList.get(row));/
+				editPaper(row);
 			}
 		}else if(arg0.getActionCommand().equals(CANCEL_EDIT)){
 			System.err.println("Cancel pressed.");
@@ -327,6 +325,16 @@ public class PaperManager extends JPanel implements ActionListener{
 			System.exit(0);
 		}else{
 			System.err.println("Unknown event: " + arg0.getActionCommand());
+		}
+	}
+	
+	private void editPaper(int row){
+		BibEditorDialog dialog = new BibEditorDialog(paperList.get(row).getEntry());
+		dialog.setVisible(true);
+		if(dialog.isDirty()){
+			tModel.loadData();
+			tModel.fireTableStructureChanged();
+			writer.writeFile(paperList);
 		}
 	}
 	
@@ -512,80 +520,6 @@ public class PaperManager extends JPanel implements ActionListener{
 		JOptionPane.showMessageDialog(parent, sorryMsg);
 	}
 
-	// TODO 
-	private void editBibentry(Paper paper){
-		JFrame owner = (JFrame) this.getTopLevelAncestor();
-		JDialog dialog = new JDialog(owner);
-		BibEntry entry = paper.getEntry();
-		int fieldWidth = 20;
-		
-		Map<String,String> fields = entry.getFields();
-		int rows = 2 + fields.size() + 1; //type,label,fields,new
-		int cols = 2;
-		
-		dialog.setModal(true);
-//		GridLayout layout = new GridLayout(0, 2);
-		JPanel editPanel = new JPanel(new SpringLayout());
-//		System.err.println("hgap : " + layout.getHgap());
-//		System.err.println("vgap : " + layout.getVgap());
-		
-		JLabel label; JTextField field;
-		// label label
-		label = new JLabel("Label", JLabel.TRAILING);
-		editPanel.add(label);
-		// label field
-		field = new JTextField(entry.getLabel(), fieldWidth);
-		field.setCaretPosition(0);
-		label.setLabelFor(field);
-		editPanel.add(field);
-		// type label
-		label = new JLabel("Type", JLabel.TRAILING);
-		editPanel.add(label);
-		// type field
-		field = new JTextField(entry.getType(), fieldWidth);
-		field.setCaretPosition(0);
-		label.setLabelFor(field);
-		editPanel.add(field);
-		for(String key : fields.keySet()){
-			String value = fields.get(key);
-			label = new JLabel(key, JLabel.TRAILING);
-			editPanel.add(label);
-			field = new JTextField(value, fieldWidth);
-			field.setCaretPosition(0);
-			label.setLabelFor(field);
-			editPanel.add(field);
-		}
-		
-		field = new JTextField(5);
-		field.addActionListener(this);
-		editPanel.add(field);
-		field = new JTextField(10);
-		field.addActionListener(this);
-		editPanel.add(field);
-		SpringUtilities.makeCompactGrid(editPanel, rows, cols, 5, 5, 5, 5);
-//		dialog.setPreferredSize(new Dimension(400, 300));
-		
-		JSplitPane pane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-		pane.add(editPanel);
-		
-		JPanel buttonPanel = new JPanel(new FlowLayout());
-		JButton cancel = new JButton("Cancel");
-		cancel.setActionCommand(CANCEL_EDIT);
-		cancel.addActionListener(this);
-		JButton save = new JButton("Save");
-		save.addActionListener(this);
-		save.setActionCommand(SAVE_EDIT);
-		buttonPanel.add(cancel);
-		buttonPanel.add(save);
-		pane.add(buttonPanel);
-		
-		
-		dialog.add(pane);
-		dialog.setResizable(false);
-		dialog.pack();
-		dialog.setVisible(true);
-	}
-	
 	/**
 	 * Create the GUI and show it.  For thread safety,
 	 * this method should be invoked from the
@@ -635,18 +569,6 @@ public class PaperManager extends JPanel implements ActionListener{
 				System.exit(0);
 			}
 			
-/*			// works in os x, not in linux!
-			System.setProperty("linux.awt.fileDialogForDirectories", "true");
-			FileDialog fileDialog = new FileDialog(frame);
-			fileDialog.setDirectory(System.getProperty("user.home"));
-			fileDialog.setVisible(true);
-			String dir = fileDialog.getDirectory();
-			String fn = fileDialog.getFile();
-			String dbDir = dir;
-			if(fn != null){
-				dbDir += fn;
-			}
-*/
 			props.setProperty(DB_LOC_KEY, dbDir);
 			try {
 				props.store(new FileOutputStream(confFile), null);
@@ -674,10 +596,10 @@ public class PaperManager extends JPanel implements ActionListener{
 
 		JMenuBar menubar = new JMenuBar();
 		JMenu fileMenu = new JMenu("File");
-		JMenuItem miImport = new JMenuItem("Import .bib file (unimplemented)");
+		JMenuItem miImport = new JMenuItem("Import .bib file");
 		miImport.setActionCommand(IMP_CMD);
 		miImport.addActionListener(newContentPane);
-		JMenuItem miExport = new JMenuItem("Export .bib file (unimplemented)");
+		JMenuItem miExport = new JMenuItem("Export .bib file");
 		miExport.setActionCommand(EXP_CMD);
 		miExport.addActionListener(newContentPane);
 		JMenuItem miLast = new JMenuItem("Exit");
@@ -688,7 +610,7 @@ public class PaperManager extends JPanel implements ActionListener{
 		fileMenu.add(miLast);
 		
 		JMenu editMenu = new JMenu("Edit");
-		JMenuItem miEdit = new JMenuItem("Edit paper info (under development)");
+		JMenuItem miEdit = new JMenuItem("Edit paper info");
 		miEdit.setActionCommand(EDIT_CMD);
 		miEdit.addActionListener(newContentPane);
 		editMenu.add(miEdit);
