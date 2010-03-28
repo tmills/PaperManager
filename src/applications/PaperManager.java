@@ -27,6 +27,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
@@ -58,6 +59,7 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -70,16 +72,12 @@ import java.util.Set;
 
 /*
  * This is started based on the TableDemo on the swing tutorial site.
- * TODO (High) Have "add paper" button open a dialog to fill in? (use table only for small edits)
- *      Low because most papers will be added w/ bibtex for the time being
- *      High because no way to edit hidden fields
  * TODO Visual reminder to save summary (grayed out save button when fresh?  greyed text area?)
- * TODO Right-click context menu (edit, link, ?)
  * TODO Auto-scan dropbox directory for new pdfs and add to 2nd card
  * TODO (low) Make division between gui elements thicker (prettier)
  */
 
-public class PaperManager extends JPanel implements ActionListener{
+public class PaperManager extends JPanel implements ActionListener, MouseListener{
 	private static final String ADD_CMD = "ADD";
 	private static final String RM_CMD = "RM";
 	private static final String LINK_CMD = "LINK";
@@ -175,7 +173,8 @@ public class PaperManager extends JPanel implements ActionListener{
 		
 		// add table
 		table = new RefTable(tModel);
-
+		table.addMouseListener(this);
+		
 		//Create the scroll pane and add the table to it.
 		JScrollPane scrollPane = new JScrollPane(table);
 		
@@ -641,6 +640,49 @@ public class PaperManager extends JPanel implements ActionListener{
 	private static void fatal(Exception e, String s){
 		e.printStackTrace();
 		System.err.println(s);
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		if(arg0.getButton() == MouseEvent.BUTTON3){
+			// right click
+			JPopupMenu rcMenu = new JPopupMenu();
+			JMenuItem editMenu = new JMenuItem("Edit entry");
+			editMenu.addActionListener(this);
+			editMenu.setActionCommand(EDIT_CMD);
+			
+			JMenuItem openMenu = new JMenuItem("Open paper");
+			openMenu.addActionListener(this);
+			openMenu.setActionCommand(OPEN_CMD);
+			
+			JMenuItem linkMenu = new JMenuItem("Link paper to PDF");
+			linkMenu.addActionListener(this);
+			linkMenu.setActionCommand(LINK_CMD);
+			
+			rcMenu.add(editMenu);
+			rcMenu.add(openMenu);
+			rcMenu.add(linkMenu);
+			rcMenu.setLocation(arg0.getPoint());
+			rcMenu.show(arg0.getComponent(), arg0.getX(), arg0.getY());
+		}
+		
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent arg0) {
+	}
+
+	@Override
+	public void mouseExited(MouseEvent arg0) {
+	}
+
+	@Override
+	public void mousePressed(MouseEvent arg0) {
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent arg0) {
 	}
 
 }
