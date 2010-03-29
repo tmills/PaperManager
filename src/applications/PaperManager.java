@@ -87,7 +87,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 	private static final String WRITE_CMD = "WRITE";
 	private static final String NEW_TAG = "NEW_TAG";
 	private static final String EDIT_CMD = "EDIT";
-	private static final String CANCEL_EDIT = "CANCEL";
+//	private static final String CANCEL_EDIT = "CANCEL";
 	private static final String SAVE_EDIT = "SAVE_EDIT";
 	private static final String EXIT = "EXIT";
 	private static final String DB_LOC_KEY = "DB_LOC";
@@ -315,10 +315,10 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 //				editBibentry(paperList.get(row));/
 				editPaper(row);
 			}
-		}else if(arg0.getActionCommand().equals(CANCEL_EDIT)){
-			System.err.println("Cancel pressed.");
-		}else if(arg0.getActionCommand().equals(SAVE_EDIT)){
-			System.err.println("Save pressed.");
+//		}else if(arg0.getActionCommand().equals(CANCEL_EDIT)){
+//			System.err.println("Cancel pressed.");
+//		}else if(arg0.getActionCommand().equals(SAVE_EDIT)){
+//			System.err.println("Save pressed.");
 		}else if(arg0.getActionCommand().equals(EXIT)){
 //			System.err.println("Exit pressed!");
 			System.exit(0);
@@ -644,7 +644,6 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 
 	@Override
 	public void mouseClicked(MouseEvent arg0) {
-		// TODO Auto-generated method stub
 		if(arg0.getButton() == MouseEvent.BUTTON3){
 			// right click
 			JPopupMenu rcMenu = new JPopupMenu();
