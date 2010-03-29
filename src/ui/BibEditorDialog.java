@@ -130,11 +130,6 @@ public class BibEditorDialog extends JDialog implements ActionListener {
 	}
 	
 	@Override
-	/*
-	 * FIXME: When new entry is created, adding a blank field deletes any new information
-	 * in the type and label fields.
-	 * Just save them from the fields before recreating.
-	 */
 	public void actionPerformed(ActionEvent arg0) {
 		if(arg0.getActionCommand().equals(SAVE_EDIT)){
 			System.err.println("Save button pressed.");

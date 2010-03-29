@@ -22,6 +22,7 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -64,8 +65,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -96,6 +99,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 	  "opening PDFs from within the table.  " +
 	  "Everything else should work fine though!";
 	private ArrayList<Paper> paperList=null;
+	private HashSet<String> filesLinked=null;
 	PaperFileWriter writer = null;
 	PaperFileReader pfr = null;
 	BibtexFileReader bibReader = null;
@@ -136,6 +140,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		paperList = pfr.readFile();
 		writer = new PaperFileWriter(fn);
 		tModel = new RefTableModel();
+		filesLinked = new HashSet();
 		
 		// add toolbar and buttons
 		JToolBar toolbar = new JToolBar("Tool buttons");
@@ -216,10 +221,40 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		entryPanel.add(sidePanel, BorderLayout.EAST);
 		mainPane.addTab("Bibtex Entries", entryPanel);
 		
-		JPanel docPanel = new JPanel(new BorderLayout());
+		JScrollPane docPanel = buildSecondPanel(); //= new JScrollPane();
+//		buildSecondPanel();
 		mainPane.addTab("Unbound Documents", docPanel);
 		add(mainPane);
 	}
+
+	private JScrollPane buildSecondPanel(){
+		// fill the set of files linked to papers first...
+		loadFilenames();
+		
+		File dir = new File(rootDir);
+		String[] files = dir.list(new FilenameFilter(){
+				public boolean accept(File f, String s){
+					return (s.endsWith("pdf") || s.endsWith("PDF")) &&
+					       !(filesLinked.contains(s));
+				}
+			});
+		JList list = new JList(files);
+//		for(String fn : files){
+//			if(!filesLinked.contains(fn)){
+//				list.add(new JLabel(fn));
+//			}
+//		}
+		return new JScrollPane(list);
+	}
+	
+	private void loadFilenames() {
+		for(Paper paper : paperList){
+			if(paper.getFile() != null && !paper.getFile().getName().equals("")){
+				filesLinked.add(paper.getFile().getName());
+			}
+		}
+	}
+	
 
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
