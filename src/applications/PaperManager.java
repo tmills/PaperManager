@@ -50,6 +50,7 @@ import bib.BibtexFileWriter;
 import papers.*;
 import tags.Tag;
 import ui.BibEditorDialog;
+import ui.FileDropHandler;
 import ui.MyFileChooser;
 import ui.SpringUtilities;
 
@@ -239,6 +240,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 				}
 			});
 		JList list = new JList(files);
+		list.setTransferHandler(new FileDropHandler(rootDir));
 //		for(String fn : files){
 //			if(!filesLinked.contains(fn)){
 //				list.add(new JLabel(fn));
@@ -618,6 +620,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		
 		//Create and set up the content pane.
 		File dbFile = new File(dbDir + "/papers.xml");
+//		File dbFile = new File("papers_text.xml");
 		if(!dbFile.exists()){
 			try {
 				dbFile.createNewFile();
@@ -704,19 +707,11 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 	}
 
 	@Override
-	public void mouseEntered(MouseEvent arg0) {
-	}
-
+	public void mouseEntered(MouseEvent arg0) {}
 	@Override
-	public void mouseExited(MouseEvent arg0) {
-	}
-
+	public void mouseExited(MouseEvent arg0) {}
 	@Override
-	public void mousePressed(MouseEvent arg0) {
-	}
-
+	public void mousePressed(MouseEvent arg0) {}
 	@Override
-	public void mouseReleased(MouseEvent arg0) {
-	}
-
+	public void mouseReleased(MouseEvent arg0) {}
 }
