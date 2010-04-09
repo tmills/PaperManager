@@ -76,6 +76,8 @@ import java.util.Set;
 
 /*
  * This is started based on the TableDemo on the swing tutorial site.
+ * TODO Improve look on os x (file menu on menu bar instead of on app window)
+ * TODO Be able to refresh list when new file is dragged in?
  * TODO Visual reminder to save summary (grayed out save button when fresh?  greyed text area?)
  * TODO Auto-scan dropbox directory for new pdfs and add to 2nd card
  * TODO (low) Make division between gui elements thicker (prettier)
@@ -228,6 +230,10 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		add(mainPane);
 	}
 
+	public void reloadList(){
+		// create a new list.  probably just make its own list model
+	}
+	
 	private JScrollPane buildSecondPanel(){
 		// fill the set of files linked to papers first...
 		loadFilenames();
@@ -235,12 +241,12 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		File dir = new File(rootDir);
 		String[] files = dir.list(new FilenameFilter(){
 				public boolean accept(File f, String s){
-					return (s.endsWith("pdf") || s.endsWith("PDF")) &&
+					return (s.toLowerCase().endsWith("pdf")) &&
 					       !(filesLinked.contains(s));
 				}
 			});
 		JList list = new JList(files);
-		list.setTransferHandler(new FileDropHandler(rootDir));
+		list.setTransferHandler(new FileDropHandler(rootDir, this));
 //		for(String fn : files){
 //			if(!filesLinked.contains(fn)){
 //				list.add(new JLabel(fn));

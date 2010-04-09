@@ -9,12 +9,16 @@ import java.util.List;
 
 import javax.swing.TransferHandler;
 
+import applications.PaperManager;
+
 public class FileDropHandler extends TransferHandler {
 	String rootDir=null;
+	PaperManager p=null;
 	
-	public FileDropHandler(String rootDir){
+	public FileDropHandler(String rootDir, PaperManager p){
 		super();
 		this.rootDir = rootDir;
+		this.p = p;
 	}
 	
 	/* (non-Javadoc)
@@ -62,7 +66,8 @@ public class FileDropHandler extends TransferHandler {
 				return false;
 			}
 		}
-		return super.importData(support);
+		p.reloadList();
+		return true;
 	}
 	
 }
