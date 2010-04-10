@@ -67,9 +67,32 @@ import papers.PaperFileWriter;
 import tags.Tag;
 import ui.BibEditorDialog;
 import ui.FileDropHandler;
+import ui.LabelRenderer;
 import ui.MyFileChooser;
+import ui.SpringUtilities;
 import bib.BibtexFileReader;
 import bib.BibtexFileWriter;
+
+import java.awt.BorderLayout;
+import java.awt.Desktop;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 
 /*
  * This is started based on the TableDemo on the swing tutorial site.
@@ -105,6 +128,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 	private HashSet<String> filesLinked=null;
 	private static Properties props=null;
 	private static File confFile = null;
+	private HashMap<String,Integer> labelsUsed=null;
 	PaperFileWriter writer = null;
 	PaperFileReader pfr = null;
 	BibtexFileReader bibReader = null;
@@ -146,8 +170,9 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		pfr = new PaperFileReader(fn);
 		paperList = pfr.readFile();
 		writer = new PaperFileWriter(fn);
+		labelsUsed = new HashMap<String,Integer>();
 		tModel = new RefTableModel();
-		filesLinked = new HashSet();
+		filesLinked = new HashSet<String>();
 		
 		// add toolbar and buttons
 		JToolBar toolbar = new JToolBar("Tool buttons");
@@ -206,6 +231,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		// add table
 		table = new RefTable(tModel);
 		table.addMouseListener(this);
+		table.setDefaultRenderer(String.class, new LabelRenderer(labelsUsed));
 		
 		//Create the scroll pane and add the table to it.
 		JScrollPane scrollPane = new JScrollPane(table);
@@ -476,11 +502,17 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		private void loadData(){
 			data = new Object[paperList.size()][];
 			int j;
+			labelsUsed.clear();
 			for(int i = 0; i < data.length; i++){
 				j = 0;
 				data[i] = new Object[columnNames.length];
 				LABEL_COL = j;
 				data[i][j++] = paperList.get(i).getLabel();
+				if(labelsUsed.containsKey((String)data[i][j-1])){
+					labelsUsed.put((String)data[i][j-1], labelsUsed.get((String)data[i][j-1]) + 1);
+				}else{
+					labelsUsed.put((String)data[i][j-1], 1);
+				}
 				data[i][j++] = paperList.get(i).getField("author");
 				data[i][j++] = paperList.get(i).getField("title");
 				TYPE_COL = j;
