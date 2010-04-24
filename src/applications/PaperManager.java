@@ -19,7 +19,6 @@ package applications;
 
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JList;
@@ -37,13 +36,10 @@ import javax.swing.JTextArea;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
-import javax.swing.SpringLayout;
-import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 
-import bib.BibEntry;
 import bib.BibtexFileReader;
 import bib.BibtexFileWriter;
 
@@ -52,12 +48,10 @@ import tags.Tag;
 import ui.BibEditorDialog;
 import ui.FileDropHandler;
 import ui.MyFileChooser;
-import ui.SpringUtilities;
 
 import java.awt.BorderLayout;
 import java.awt.Desktop;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -70,16 +64,12 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
 /*
  * This is started based on the TableDemo on the swing tutorial site.
  * TODO Search by tag... (large)
- * TODO Add box centers over main window
- * TODO Export/import buttons
- * TODO Remember export location?
  * TODO Improve look on os x (file menu on menu bar instead of on app window)
  * TODO Be able to refresh list when new file is dragged in?
  * TODO Visual reminder to save summary (grayed out save button when fresh?  greyed text area?)
@@ -100,12 +90,15 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 	private static final String SAVE_EDIT = "SAVE_EDIT";
 	private static final String EXIT = "EXIT";
 	private static final String DB_LOC_KEY = "DB_LOC";
+	private static final String EXPORT_DIR = "EXPORT_DIR";
 	private static String configurationFilename = "/Users/tmill/.papermanager";
 	String sorryMsg = "Sorry, this platform does not support " +
 	  "opening PDFs from within the table.  " +
 	  "Everything else should work fine though!";
 	private ArrayList<Paper> paperList=null;
 	private HashSet<String> filesLinked=null;
+	private static Properties props=null;
+	private static File confFile = null;
 	PaperFileWriter writer = null;
 	PaperFileReader pfr = null;
 	BibtexFileReader bibReader = null;
@@ -121,8 +114,9 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 	private int TYPE_COL;
 	private int VENUE_COL;
 	private int PDF_COL;
+	private JFrame parent;
 	
-	public PaperManager(String fn) {
+	public PaperManager(String fn, JFrame p) {
 		
 		super(new BorderLayout());
 		try{
@@ -140,6 +134,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 			// apparently this is a possibility with older apis?
 			noDesktop(this);
 		}
+		parent = p;
 		rootDir = (new File(fn)).getParent();
 		// initialize data structures
 		pfr = new PaperFileReader(fn);
@@ -185,13 +180,13 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		toolbar.addSeparator(new Dimension(100,10));
 		
 		button = new JButton();
-		button.setText(" E ");
+		button.setText("Export (bib)");
 		button.addActionListener(this);
 		button.setActionCommand(this.EXP_CMD);
 		toolbar.add(button);
 		
 		button = new JButton();
-		button.setText(" I ");
+		button.setText("Import (bib)");
 		button.addActionListener(this);
 		button.setActionCommand(this.IMP_CMD);
 		toolbar.add(button);
@@ -336,9 +331,13 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 			if(bibWriter == null) bibWriter = new BibtexFileWriter();
 			MyFileChooser fc = new MyFileChooser();
 			fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+			if(props.containsKey(EXPORT_DIR)){
+				fc.setSelectedFile(new File((String)props.get(EXPORT_DIR)));
+			}
 			int ret = fc.showSaveDialog(table);
 			if(ret == JFileChooser.APPROVE_OPTION){
 				fn = fc.getSelectedFile().getPath();
+				props.setProperty(EXPORT_DIR, fn);
 				boolean success = bibWriter.writeFile(fn, paperList);
 				if(!success){
 					JOptionPane.showMessageDialog(this, "ERROR Exporting bib file: Please see stack trace.");
@@ -380,7 +379,13 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 //		}else if(arg0.getActionCommand().equals(SAVE_EDIT)){
 //			System.err.println("Save pressed.");
 		}else if(arg0.getActionCommand().equals(EXIT)){
-//			System.err.println("Exit pressed!");
+			try {
+				props.store(new FileOutputStream(confFile), null);
+			} catch (FileNotFoundException e) {
+				fatal(e, "ERROR: Could not find file: " + confFile.getAbsolutePath());
+			} catch (IOException e) {
+				fatal(e, "ERROR: Cannot store properties in file: " + confFile.getAbsolutePath());
+			}			
 			System.exit(0);
 		}else{
 			System.err.println("Unknown event: " + arg0.getActionCommand());
@@ -388,7 +393,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 	}
 	
 	private void editPaper(int row){
-		BibEditorDialog dialog = new BibEditorDialog(paperList.get(row).getEntry());
+		BibEditorDialog dialog = new BibEditorDialog(paperList.get(row).getEntry(), parent);
 		dialog.setVisible(true);
 		if(dialog.isDirty()){
 			tModel.loadData();
@@ -591,7 +596,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		
 		// first read conf file (or create if doesn't exist)
 		configurationFilename = System.getProperty("user.home") + "/.papermanager";
-		File confFile = new File(configurationFilename);
+		confFile = new File(configurationFilename);
 		
 		// if it doesn't exist create it (have to ask for db_dir location)
 		if(!confFile.exists()){
@@ -603,7 +608,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		}
 		
 		// load properties whether or not the file has any (like if we just created it above)
-		Properties props = new Properties();
+		props = new Properties();
 		try {
 			props.load(new FileInputStream(configurationFilename));
 		} catch (FileNotFoundException e1) {
@@ -652,7 +657,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 			}
 		}
 		
-		PaperManager newContentPane = new PaperManager(dbFile.getPath());
+		PaperManager newContentPane = new PaperManager(dbFile.getPath(), frame);
 
 		JMenuBar menubar = new JMenuBar();
 		JMenu fileMenu = new JMenu("File");
@@ -725,8 +730,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 			rcMenu.add(linkMenu);
 			rcMenu.setLocation(arg0.getPoint());
 			rcMenu.show(arg0.getComponent(), arg0.getX(), arg0.getY());
-		}
-		
+		}	
 	}
 
 	@Override

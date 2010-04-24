@@ -42,7 +42,9 @@ public class BibEditorDialog extends JDialog implements ActionListener {
 	JTextField newField; JTextField newValue;
 	JSplitPane pane;
 	
-	public BibEditorDialog(BibEntry b){
+	public BibEditorDialog(BibEntry b, JFrame parent){
+		super(parent);
+		this.setLocationRelativeTo(parent);
 		bib = b;
 	
 		for(int i = 0; i < types.length; i++){
