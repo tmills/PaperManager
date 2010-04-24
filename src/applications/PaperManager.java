@@ -76,10 +76,13 @@ import java.util.Set;
 
 /*
  * This is started based on the TableDemo on the swing tutorial site.
+ * TODO Search by tag... (large)
+ * TODO Add box centers over main window
+ * TODO Export/import buttons
+ * TODO Remember export location?
  * TODO Improve look on os x (file menu on menu bar instead of on app window)
  * TODO Be able to refresh list when new file is dragged in?
  * TODO Visual reminder to save summary (grayed out save button when fresh?  greyed text area?)
- * TODO Auto-scan dropbox directory for new pdfs and add to 2nd card
  * TODO (low) Make division between gui elements thicker (prettier)
  */
 
@@ -499,7 +502,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		public boolean isCellEditable(int row, int col) {
 			//Note that the data/cell address is constant,
 			//no matter where the cell appears onscreen.
-			if(col == PDF_COL) return false;
+			if(col == PDF_COL || col == TYPE_COL) return false;
 			return true;
 		}
 	}

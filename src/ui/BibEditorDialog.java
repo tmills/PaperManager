@@ -34,13 +34,21 @@ public class BibEditorDialog extends JDialog implements ActionListener {
 	private boolean dirty = false;
 	private HashMap<String,JTextField> tfields = null;
 	int fieldWidth = 20;
+	String[] types = {"article", "inproceedings", "book", "phdthesis", "incollection", "inbook", "techreport", "misc", "mastersthesis", "unpublished"};
+	HashMap<String,Integer> typeIndices = new HashMap<String,Integer>();
 	JPanel editPanel;
-	JTextField labelField; JTextField typeField;
+	JTextField labelField; //JTextField typeField;
+	JComboBox typeChooser = new JComboBox(types);
 	JTextField newField; JTextField newValue;
 	JSplitPane pane;
+	
 	public BibEditorDialog(BibEntry b){
 		bib = b;
 	
+		for(int i = 0; i < types.length; i++){
+			typeIndices.put(types[i], i);
+		}
+		
 		tfields = new LinkedHashMap<String,JTextField>();
 		
 //		editPanel = new JPanel(new SpringLayout());
@@ -101,10 +109,13 @@ public class BibEditorDialog extends JDialog implements ActionListener {
 		label = new JLabel("Type", JLabel.TRAILING);
 		editPanel.add(label);
 		// type field
-		typeField = new JTextField(bib.getType(), fieldWidth);
-		typeField.setCaretPosition(0);
-		label.setLabelFor(typeField);
-		editPanel.add(typeField);
+//		typeField = new JTextField(bib.getType(), fieldWidth);
+//		typeField.setCaretPosition(0);
+		if(!bib.getType().equals("")){
+			typeChooser.setSelectedIndex(typeIndices.get(bib.getType()));
+		}
+		label.setLabelFor(typeChooser);
+		editPanel.add(typeChooser);
 		JTextField field;
 		for(String key : fields.keySet()){
 			String value = fields.get(key);
@@ -140,7 +151,8 @@ public class BibEditorDialog extends JDialog implements ActionListener {
 				bib.setLabel(text);
 				dirty = true;
 			}
-			text = typeField.getText().toLowerCase();
+//			text = typeField.getText().toLowerCase();
+			text = (String) typeChooser.getSelectedItem();
 			if(!text.equalsIgnoreCase(bib.getType())){
 				bib.setType(text);
 				dirty = true;
@@ -161,9 +173,10 @@ public class BibEditorDialog extends JDialog implements ActionListener {
 			if(!labelField.getText().equals("")){
 				bib.setLabel(labelField.getText());
 			}
-			if(!typeField.getText().equals("")){
-				bib.setType(typeField.getText().toLowerCase());
-			}
+//			if(!typeField.getText().equals("")){
+//				bib.setType(typeField.getText().toLowerCase());
+//			}
+			bib.setType((String)typeChooser.getSelectedItem());
 			bib.setField(newField.getText(), newValue.getText());
 			editPanel = getPanel();
 			pane.add(editPanel);

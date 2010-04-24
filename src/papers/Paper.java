@@ -94,7 +94,7 @@ public class Paper {
 		}else if(bib.getType().equalsIgnoreCase("inproceedings")){
 			return bib.getField("booktitle");
 		}else if(bib.getType().equalsIgnoreCase("phdthesis")){
-			return bib.getField("institution");
+			return bib.getField("school");
 		}else if(bib.getType().equalsIgnoreCase("techreport")){
 			return bib.getField("institution");
 		}else{
@@ -110,7 +110,7 @@ public class Paper {
 		}else if(bib.getType().equalsIgnoreCase("inproceedings")){
 			bib.setField("booktitle",v);
 		}else if(bib.getType().equalsIgnoreCase("phdthesis")){
-			bib.setField("institution",v);
+			bib.setField("school",v);
 		}else if(bib.getType().equalsIgnoreCase("techreport")){
 			bib.setField("institution",v);
 		}

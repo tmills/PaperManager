@@ -24,17 +24,7 @@ public class BibEntry {
 	String type="";
 
 	HashMap<String,String> fields = new LinkedHashMap<String,String>();
-	/*
-	String authors="";
-	String title="";
-	String booktitle="";
-	String journal="";
-	int startPage; int endPage;
-	String publisher="";
-	String institution="";
-	int volume;
-	String year="";
-*/	
+
 	public String getLabel() {
 		return label;
 	}
