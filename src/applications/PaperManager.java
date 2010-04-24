@@ -182,6 +182,20 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		button.setActionCommand(EDIT_CMD);
 		toolbar.add(button);
 		
+		toolbar.addSeparator(new Dimension(100,10));
+		
+		button = new JButton();
+		button.setText(" E ");
+		button.addActionListener(this);
+		button.setActionCommand(this.EXP_CMD);
+		toolbar.add(button);
+		
+		button = new JButton();
+		button.setText(" I ");
+		button.addActionListener(this);
+		button.setActionCommand(this.IMP_CMD);
+		toolbar.add(button);
+		
 		// add table
 		table = new RefTable(tModel);
 		table.addMouseListener(this);
