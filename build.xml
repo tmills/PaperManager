@@ -24,28 +24,40 @@
   <target name="dist" depends="compile"
         description="generate the distribution" >
     <!-- Create the distribution directory -->
-    <mkdir dir="${dist}/lib"/>
+    <mkdir dir="${dist}"/>
 
     <!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
-    <jar jarfile="${dist}/lib/PaperManager-${DSTAMP}.jar" basedir="${build}">
-        <manifest>
-            <attribute name="Main-Class" value="applications.PaperManager"/>
-        </manifest>    
-    </jar>
+    <jar jarfile="${dist}/PaperManager-${DSTAMP}.jar" basedir="${build}">
+      <fileset dir="${build}" />
+      <manifest>
+	<attribute name="Main-Class"
+		   value="applications.PaperManager" />
+	<attribute name="Class-Path"
+		   value="." />
+      </manifest>
+  </jar>
   </target>
 
-  <target name="dist-clean" description="clean dist">
+  <target name="javadoc" description="create Javadocs">
+    <mkdir dir="${javadoc}"/>
+    <javadoc
+       destdir="${javadoc}">
+      <fileset dir="${src}" includes="**/*.java" />
+    </javadoc>
+  </target>
+
+  <target name="clean-dist" description="clean dist">
     <!-- Delete the ${dist} directory tree -->
     <delete dir="${dist}"/>
   </target>
 
-  <target name="build-clean" description="clean build">
+  <target name="clean-build" description="clean build">
     <!-- Delete the ${build} directory tree -->
     <delete dir="${build}"/>
   </target>
 
   <target name="clean"
-        description="clean up build and dist" depends="dist-clean,build-clean">
+        description="clean up build and dist" depends="clean-dist,clean-build">
     <!-- Delete the ${build} and ${dist} directory trees -->
   </target>
 </project>
