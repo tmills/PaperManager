@@ -90,6 +90,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 	private static final String WRITE_CMD = "WRITE";
 	private static final String NEW_TAG = "NEW_TAG";
 	private static final String EDIT_CMD = "EDIT";
+	private static final String BIND_CMD = "BIND";
 //	private static final String CANCEL_EDIT = "CANCEL";
 	private static final String SAVE_EDIT = "SAVE_EDIT";
 	private static final String EXIT = "EXIT";
@@ -121,6 +122,8 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 	private int VENUE_COL;
 	private int PDF_COL;
 	private JFrame parent;
+	private JScrollPane docPanel;
+	private JList unboundList;
 	
 	public PaperManager(String fn, JFrame p) {
 		
@@ -248,9 +251,17 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		entryPanel.add(sidePanel, BorderLayout.EAST);
 		mainPane.addTab("Bibtex Entries", entryPanel);
 		
-		JScrollPane docPanel = buildSecondPanel(); //= new JScrollPane();
+		JToolBar unboundTools = new JToolBar();
+		JButton bindButton = new JButton("Bind");
+		bindButton.setActionCommand(BIND_CMD);
+		bindButton.addActionListener(this);
+		unboundTools.add(bindButton);
+		JPanel unboundPanel = new JPanel(new BorderLayout());
+		docPanel = buildSecondPanel(); //= new JScrollPane();
+		unboundPanel.add(docPanel, BorderLayout.CENTER);
+		unboundPanel.add(unboundTools, BorderLayout.NORTH);
 //		buildSecondPanel();
-		mainPane.addTab("Unbound Documents", docPanel);
+		mainPane.addTab("Unbound Documents", unboundPanel);
 		add(mainPane);
 	}
 
@@ -269,14 +280,14 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 					       !(filesLinked.contains(s));
 				}
 			});
-		JList list = new JList(files);
-		list.setTransferHandler(new FileDropHandler(rootDir, this));
+		unboundList = new JList(files);
+		unboundList.setTransferHandler(new FileDropHandler(rootDir, this));
 //		for(String fn : files){
 //			if(!filesLinked.contains(fn)){
 //				list.add(new JLabel(fn));
 //			}
 //		}
-		return new JScrollPane(list);
+		return new JScrollPane(unboundList);
 	}
 	
 	private void loadFilenames() {
@@ -403,6 +414,11 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 //				editBibentry(paperList.get(row));/
 				editPaper(row);
 			}
+		}else if(arg0.getActionCommand().equals(BIND_CMD)){
+//			JList list = (JList) docPanel.getComponent(0);
+			int ind = unboundList.getSelectedIndex();
+			File pdf = new File((String) unboundList.getSelectedValue());
+			System.err.println("Bind command triggered with file " + pdf + " selected.");		
 //		}else if(arg0.getActionCommand().equals(CANCEL_EDIT)){
 //			System.err.println("Cancel pressed.");
 //		}else if(arg0.getActionCommand().equals(SAVE_EDIT)){
