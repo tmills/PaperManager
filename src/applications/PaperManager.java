@@ -60,6 +60,8 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 
 import papers.Paper;
 import papers.PaperFileReader;
@@ -124,6 +126,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 	private JFrame parent;
 	private JScrollPane docPanel;
 	private JList unboundList;
+	private static String dbDir;
 	
 	public PaperManager(String fn, JFrame p) {
 		
@@ -411,18 +414,26 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 //			System.err.println("Edit command triggered");
 			int row = table.getSelectedRow();
 			if(row >= 0){
-//				editBibentry(paperList.get(row));/
 				editPaper(row);
 			}
 		}else if(arg0.getActionCommand().equals(BIND_CMD)){
-//			JList list = (JList) docPanel.getComponent(0);
-			int ind = unboundList.getSelectedIndex();
-			File pdf = new File((String) unboundList.getSelectedValue());
-			System.err.println("Bind command triggered with file " + pdf + " selected.");		
-//		}else if(arg0.getActionCommand().equals(CANCEL_EDIT)){
-//			System.err.println("Cancel pressed.");
-//		}else if(arg0.getActionCommand().equals(SAVE_EDIT)){
-//			System.err.println("Save pressed.");
+			File pdf = new File(dbDir + "/" + (String) unboundList.getSelectedValue());
+			System.err.println("Bind command triggered with file " + pdf + " selected.");
+			try {
+				if(pdf.exists()){
+					PDDocument doc = PDDocument.load(pdf);
+					PDDocumentInformation docInfo = doc.getDocumentInformation();
+					System.err.println("Author: " + docInfo.getAuthor());
+					System.err.println("Title: " + docInfo.getTitle());
+					
+					doc.close();
+				}else{
+					System.err.println("Couldn't find file: " + pdf);
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}else if(arg0.getActionCommand().equals(EXIT)){
 			try {
 				props.store(new FileOutputStream(confFile), null);
@@ -689,7 +700,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		}
 		
 		// read configuration file
-		String dbDir = props.getProperty(DB_LOC_KEY);
+		dbDir = props.getProperty(DB_LOC_KEY);
 		
 		//Create and set up the content pane.
 		File dbFile = new File(dbDir + "/papers.xml");
