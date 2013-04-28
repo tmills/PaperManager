@@ -3,7 +3,7 @@ package bib;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import papers.Paper;
@@ -15,7 +15,7 @@ import bibtex.parser.BibtexParser;
 import bibtex.parser.ParseException;
 
 public class BibtexFileReader {
-	public void readBibtext(String text, ArrayList<Paper> papers){
+	public void readBibtext(String text, List<Paper> papers){
 //		System.err.println("Attempting to import file: " + fn);
 		BibtexFile bibtexFile = new BibtexFile();
 		BibtexParser parser = new BibtexParser(false);

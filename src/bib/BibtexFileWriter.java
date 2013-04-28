@@ -2,16 +2,15 @@ package bib;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
+import java.util.List;
 
+import papers.Paper;
 import bibtex.dom.BibtexEntry;
 import bibtex.dom.BibtexFile;
 
-import papers.Paper;
-
 public class BibtexFileWriter {
 
-	public boolean writeFile(String fn, ArrayList<Paper> papers){
+	public boolean writeFile(String fn, List<Paper> papers){
 		BibtexFile bfile = new BibtexFile();
 		for(Paper paper : papers){
 			BibtexEntry entry = bfile.makeEntry(paper.getType(), paper.getLabel());

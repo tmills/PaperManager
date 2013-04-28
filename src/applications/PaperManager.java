@@ -20,9 +20,10 @@ package applications;
 import java.awt.BorderLayout;
 import java.awt.Desktop;
 import java.awt.Dimension;
-import java.awt.TextArea;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
@@ -31,8 +32,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -70,6 +71,8 @@ import ui.FileDropHandler;
 import ui.MyFileChooser;
 import bib.BibtexFileReader;
 import bib.BibtexFileWriter;
+import filters.ListSizeFilter;
+import filters.PaperStringFilter;
 
 /*
  * This is started based on the TableDemo on the swing tutorial site.
@@ -80,7 +83,7 @@ import bib.BibtexFileWriter;
  * TODO (low) Make division between gui elements thicker (prettier)
  */
 
-public class PaperManager extends JPanel implements ActionListener, MouseListener{
+public class PaperManager extends JPanel implements ActionListener, MouseListener, KeyListener{
 	private static final String ADD_CMD = "ADD";
 	private static final String RM_CMD = "RM";
 	private static final String LINK_CMD = "LINK";
@@ -101,7 +104,8 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 	String sorryMsg = "Sorry, this platform does not support " +
 	  "opening PDFs from within the table.  " +
 	  "Everything else should work fine though!";
-	private ArrayList<Paper> paperList=null;
+	private List<Paper> fullList=null;
+	private List<Paper> displayList=null;
 	private HashSet<String> filesLinked=null;
 	private static Properties props=null;
 	private static File confFile = null;
@@ -109,9 +113,11 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 	PaperFileReader pfr = null;
 	BibtexFileReader bibReader = null;
 	BibtexFileWriter bibWriter = null;
+	private PaperStringFilter paperFilter = null;
 	JTable table;
 	JTextArea summaryBox=null;
 	JTextField tagField=null;
+	JTextField filterField = null;
 	RefTableModel tModel;
 	TagTableModel tagModel;
 	String rootDir;
@@ -144,7 +150,9 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		rootDir = (new File(fn)).getParent();
 		// initialize data structures
 		pfr = new PaperFileReader(fn);
-		paperList = pfr.readFile();
+		fullList = pfr.readFile();
+		displayList = fullList;
+		paperFilter = new ListSizeFilter(fullList);
 		writer = new PaperFileWriter(fn);
 		tModel = new RefTableModel();
 		filesLinked = new HashSet();
@@ -182,8 +190,15 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		button.addActionListener(this);
 		button.setActionCommand(EDIT_CMD);
 		toolbar.add(button);
+
+		toolbar.addSeparator(new Dimension(50,10));
+		toolbar.add(new JLabel("Filter"));
+		filterField = new JTextField(20);
+//		filterField.addActionListener(this);
+		filterField.addKeyListener(this);
+		toolbar.add(filterField);
 		
-		toolbar.addSeparator(new Dimension(100,10));
+		toolbar.addSeparator(new Dimension(50,10));
 		
 		button = new JButton();
 		button.setText("Export (bib)");
@@ -280,7 +295,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 	}
 	
 	private void loadFilenames() {
-		for(Paper paper : paperList){
+		for(Paper paper : displayList){
 			if(paper.getFile() != null && !paper.getFile().getName().equals("")){
 				filesLinked.add(paper.getFile().getName());
 			}
@@ -292,22 +307,22 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 	public void actionPerformed(ActionEvent arg0) {
 		if(arg0.getActionCommand().equals(ADD_CMD)){
 //			System.err.println("Add button has been pressed!");
-			paperList.add(new Paper());
-			editPaper(paperList.size()-1);
+			displayList.add(new Paper());
+			editPaper(displayList.size()-1);
 //			BibEditorDialog dialog = new BibEditorDialog(
 //			tModel.loadData();
 //			tModel.fireTableDataChanged();
 		}else if(arg0.getActionCommand().equals(RM_CMD)){
 //			System.err.println("Remove button has been pressed!");
 			int row = table.getSelectedRow();
-			paperList.remove(row);
+			displayList.remove(row);
 			tModel.loadData();
 			tModel.fireTableDataChanged();
-			writer.writeFile(paperList);
+			writer.writeFile(displayList);
 		}else if(arg0.getActionCommand().equals(OPEN_CMD)){
 //			System.err.println("Open button has been pressed.");
 			if(desktop != null){
-				File f = paperList.get(table.getSelectedRow()).getFile();
+				File f = displayList.get(table.getSelectedRow()).getFile();
 				if(f != null){
 					try {
 						System.err.println("Opening: " + f);
@@ -333,14 +348,14 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 			if(ret == JFileChooser.APPROVE_OPTION){
 				fn = fc.getSelectedFile().getPath();
 				try {
-					bibReader.readBibtext(FileUtils.readFileToString(fc.getSelectedFile()), paperList);
+					bibReader.readBibtext(FileUtils.readFileToString(fc.getSelectedFile()), displayList);
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				tModel.loadData();
 				tModel.fireTableDataChanged();
-				writer.writeFile(paperList);
+				writer.writeFile(displayList);
 			}
 		}else if(arg0.getActionCommand().equals(SNIP_CMD)){
 			if(bibReader == null) bibReader = new BibtexFileReader();
@@ -350,10 +365,10 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 //			textPanel.add(textArea);
 			int ret = JOptionPane.showConfirmDialog(null, textArea, "Paste in bib entries:", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE); 
 			if(ret == JOptionPane.CANCEL_OPTION) return;
-			bibReader.readBibtext(textArea.getText(), paperList);
+			bibReader.readBibtext(textArea.getText(), displayList);
 			tModel.loadData();
 			tModel.fireTableDataChanged();
-			writer.writeFile(paperList);
+			writer.writeFile(displayList);
 		}else if(arg0.getActionCommand().equals(EXP_CMD)){
 //			System.err.println("Export command triggered");
 			String fn="";
@@ -367,7 +382,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 			if(ret == JFileChooser.APPROVE_OPTION){
 				fn = fc.getSelectedFile().getPath();
 				props.setProperty(EXPORT_DIR, fn);
-				boolean success = bibWriter.writeFile(fn, paperList);
+				boolean success = bibWriter.writeFile(fn, displayList);
 				if(!success){
 					JOptionPane.showMessageDialog(this, "ERROR Exporting bib file: Please see stack trace.");
 				}
@@ -375,10 +390,10 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		}else if(arg0.getActionCommand().equals(WRITE_CMD)){
 //			System.err.println("Write command triggered");
 			int row = table.getSelectedRow();
-			Paper selPaper = paperList.get(row);
+			Paper selPaper = displayList.get(row);
 //			selPaper.setField("summary", summaryBox.getText());
 			selPaper.setSummary(summaryBox.getText());
-			writer.writeFile(paperList);
+			writer.writeFile(displayList);
 		}else if(arg0.getActionCommand().equals(NEW_TAG)){
 //			System.err.println("New tag command triggered");
 			int row = table.getSelectedRow();
@@ -391,10 +406,10 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 			int ret = fc.showOpenDialog(table);
 			if(ret == JFileChooser.APPROVE_OPTION){
 				int row = table.getSelectedRow();
-				paperList.get(row).setFile(fc.getSelectedFile());
+				displayList.get(row).setFile(fc.getSelectedFile());
 				tModel.loadData();
 				tModel.fireTableCellUpdated(row, PDF_COL);
-				writer.writeFile(paperList);
+				writer.writeFile(displayList);
 			}
 		}else if(arg0.getActionCommand().equals(EDIT_CMD)){
 //			System.err.println("Edit command triggered");
@@ -422,12 +437,12 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 	}
 	
 	private void editPaper(int row){
-		BibEditorDialog dialog = new BibEditorDialog(paperList.get(row).getEntry(), parent);
+		BibEditorDialog dialog = new BibEditorDialog(displayList.get(row).getEntry(), parent);
 		dialog.setVisible(true);
 		if(dialog.isDirty()){
 			tModel.loadData();
 			tModel.fireTableStructureChanged();
-			writer.writeFile(paperList);
+			writer.writeFile(displayList);
 		}
 	}
 	
@@ -443,7 +458,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 				DefaultListSelectionModel dlsm = (DefaultListSelectionModel) e.getSource();
 				int row = dlsm.getAnchorSelectionIndex();
 				if(row >= 0){
-					Paper curr = paperList.get(row);
+					Paper curr = displayList.get(row);
 					summaryBox.setText(curr.getSummary());
 					tagModel.setData(curr.getTags());
 				}
@@ -474,22 +489,22 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		}
 		
 		private void loadData(){
-			data = new Object[paperList.size()][];
+			data = new Object[displayList.size()][];
 			int j;
 			for(int i = 0; i < data.length; i++){
 				j = 0;
 				data[i] = new Object[columnNames.length];
 				LABEL_COL = j;
-				data[i][j++] = paperList.get(i).getLabel();
-				data[i][j++] = paperList.get(i).getField("author");
-				data[i][j++] = paperList.get(i).getField("title");
+				data[i][j++] = displayList.get(i).getLabel();
+				data[i][j++] = displayList.get(i).getField("author");
+				data[i][j++] = displayList.get(i).getField("title");
 				TYPE_COL = j;
-				data[i][j++] = paperList.get(i).getType();
+				data[i][j++] = displayList.get(i).getType();
 				VENUE_COL = j;
-				data[i][j++] = paperList.get(i).getVenue();
-				data[i][j++] = paperList.get(i).getField("year");
+				data[i][j++] = displayList.get(i).getVenue();
+				data[i][j++] = displayList.get(i).getField("year");
 				PDF_COL = j;
-				data[i][j++] = (paperList.get(i).getFile() == null) ? "no" : "yes";
+				data[i][j++] = (displayList.get(i).getFile() == null) ? "no" : "yes";
 			}
 		}
 		
@@ -501,15 +516,15 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 			data[row][col] = value;
 			//if(col == 0 || col == 1 || col == 4){
 			if(col == LABEL_COL){
-				paperList.get(row).setLabel((String) value);
+				displayList.get(row).setLabel((String) value);
 			}else if(col == TYPE_COL){
-				paperList.get(row).setType((String) value);
+				displayList.get(row).setType((String) value);
 			}else if(col == VENUE_COL){
-				paperList.get(row).setVenue((String) value);
+				displayList.get(row).setVenue((String) value);
 			}else{
-				paperList.get(row).setField(columnNames[col].toLowerCase(), (String) value);
+				displayList.get(row).setField(columnNames[col].toLowerCase(), (String) value);
 			}
-			writer.writeFile(paperList);
+			writer.writeFile(displayList);
 			fireTableCellUpdated(row, col);
 		}
 		
@@ -571,9 +586,9 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		}
 		
 		public void addTag(int row, String text) {
-			paperList.get(row).addTag(text);
-			setData(paperList.get(row).getTags());
-			writer.writeFile(paperList);
+			displayList.get(row).addTag(text);
+			setData(displayList.get(row).getTags());
+			writer.writeFile(displayList);
 		}
 
 		public void setValueAt(Object newData, int row, int col){
@@ -582,7 +597,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 			System.err.println("Old tag: " + oldTag);
 			oldTag.setTag(newData.toString());
 			data[row][0] = oldTag;
-			writer.writeFile(paperList);
+			writer.writeFile(displayList);
 		}
 		
 		@Override
@@ -770,4 +785,23 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 	public void mousePressed(MouseEvent arg0) {}
 	@Override
 	public void mouseReleased(MouseEvent arg0) {}
+
+	@Override
+	public void keyPressed(KeyEvent arg0) {
+		// ignore and wait for "released"
+	}
+
+	@Override
+	public void keyReleased(KeyEvent arg0) {
+		String textSoFar = filterField.getText();
+		if(textSoFar.length() == 0) displayList = fullList;
+		else displayList = paperFilter.filterList(textSoFar);
+		tModel.loadData();
+		tModel.fireTableStructureChanged();	
+	}
+
+	@Override
+	public void keyTyped(KeyEvent arg0) {
+		// ignore and wait for "released"
+	}
 }

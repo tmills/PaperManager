@@ -18,7 +18,7 @@ package papers;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
+import java.util.List;
 
 /*
  * class PaperFileWriter
@@ -35,7 +35,7 @@ public class PaperFileWriter {
 		outputFile = fn;
 	}
 	
-	public boolean writeFile(ArrayList<Paper> papers){
+	public boolean writeFile(List<Paper> papers){
 		PrintWriter out=null;
 		try {
 			out = new PrintWriter(outputFile);
