@@ -71,7 +71,7 @@ import ui.FileDropHandler;
 import ui.MyFileChooser;
 import bib.BibtexFileReader;
 import bib.BibtexFileWriter;
-import filters.ListSizeFilter;
+import filters.AuthorNameFilter;
 import filters.PaperStringFilter;
 
 /*
@@ -152,7 +152,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		pfr = new PaperFileReader(fn);
 		fullList = pfr.readFile();
 		displayList = fullList;
-		paperFilter = new ListSizeFilter(fullList);
+		paperFilter = new AuthorNameFilter(fullList);
 		writer = new PaperFileWriter(fn);
 		tModel = new RefTableModel();
 		filesLinked = new HashSet();
