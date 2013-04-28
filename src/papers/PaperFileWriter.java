@@ -43,6 +43,7 @@ public class PaperFileWriter {
 			System.err.println("Output file not found!");
 			return false;
 		}
+		out.println("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>");
 		out.println("<paperlist>");
 		for(Paper paper : papers){
 			out.println(paper.toXML());

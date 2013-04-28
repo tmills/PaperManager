@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
+import javax.swing.Action;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -100,6 +101,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 	private static final String EXPORT_DIR = "EXPORT_DIR";
 	private static final String SNIP_CMD = "ADD_SNIPPET";
 	
+	private static final String OPEN_UNBOUND_CMD = "OPEN_UNBOUND";
 	private static String configurationFilename = "/Users/tmill/.papermanager";
 	String sorryMsg = "Sorry, this platform does not support " +
 	  "opening PDFs from within the table.  " +
@@ -126,7 +128,6 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 	private JFrame parent;
 	private JScrollPane docPanel;
 	private JList unboundList;
-	private static String dbDir;
 	
 	public PaperManager(String fn, JFrame p) {
 		
@@ -259,6 +260,10 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		bindButton.setActionCommand(BIND_CMD);
 		bindButton.addActionListener(this);
 		unboundTools.add(bindButton);
+		JButton openUnboundButton = new JButton("Open");
+		openUnboundButton.setActionCommand(OPEN_UNBOUND_CMD);
+		openUnboundButton.addActionListener(this);
+		unboundTools.add(openUnboundButton);
 		JPanel unboundPanel = new JPanel(new BorderLayout());
 		docPanel = buildSecondPanel(); //= new JScrollPane();
 		unboundPanel.add(docPanel, BorderLayout.CENTER);
@@ -320,23 +325,11 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 			writer.writeFile(paperList);
 		}else if(arg0.getActionCommand().equals(OPEN_CMD)){
 //			System.err.println("Open button has been pressed.");
-			if(desktop != null){
-				File f = paperList.get(table.getSelectedRow()).getFile();
-				if(f != null){
-					try {
-						System.err.println("Opening: " + f);
-						File fullP = new File(rootDir + "/" + f.getName());
-						if(fullP.exists()){
-							desktop.open(fullP);
-						}
-					} catch (IOException e) {
-						JOptionPane.showMessageDialog(this, "Sorry, could not open file!", "Error", ERROR);
-//						e.printStackTrace();
-					}
-				}else{
-					System.err.println("No file associated with that paper!");
-				}
-			}
+			File f = paperList.get(table.getSelectedRow()).getFile();
+			openFile(f);
+		}else if(arg0.getActionCommand().equals(OPEN_UNBOUND_CMD)){
+			File f = new File(rootDir + "/" + (String)unboundList.getSelectedValue());
+			openFile(f);
 		}else if(arg0.getActionCommand().equals(IMP_CMD)){
 //			System.err.println("Import command triggered");
 			String fn="";
@@ -417,7 +410,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 				editPaper(row);
 			}
 		}else if(arg0.getActionCommand().equals(BIND_CMD)){
-			File pdf = new File(dbDir + "/" + (String) unboundList.getSelectedValue());
+			File pdf = new File(rootDir + "/" + (String) unboundList.getSelectedValue());
 			System.err.println("Bind command triggered with file " + pdf + " selected.");
 			try {
 				if(pdf.exists()){
@@ -427,6 +420,12 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 					System.err.println("Title: " + docInfo.getTitle());
 					
 					doc.close();
+					Paper paper = new Paper();
+					paper.setField("author", docInfo.getAuthor());
+					paper.setField("title", docInfo.getTitle());
+					paperList.add(paper);
+					unboundList.remove(unboundList.getSelectedIndex());
+					editPaper(paperList.size()-1);
 				}else{
 					System.err.println("Couldn't find file: " + pdf);
 				}
@@ -477,6 +476,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 			}
 		}
 		
+		@Override
 		public String getToolTipText(MouseEvent e) {
             String tip = null;
             java.awt.Point p = e.getPoint();
@@ -582,6 +582,25 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		}
 	}
 
+	private void openFile(File f){
+		if(desktop != null){
+			if(f != null){
+				try {
+					System.err.println("Opening: " + f);
+					File fullP = new File(rootDir + "/" + f.getName());
+					if(fullP.exists()){
+						desktop.open(fullP);
+					}
+				} catch (IOException e) {
+					JOptionPane.showMessageDialog(this, "Sorry, could not open file!", "Error", ERROR);
+//					e.printStackTrace();
+				}
+			}else{
+				System.err.println("No file associated with that paper!");
+			}
+		}		
+	}
+	
 	class TagTableModel extends AbstractTableModel{
 		String[] columnNames = {"Current Tags"};
 		private Object[][] data = null;
@@ -700,7 +719,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		}
 		
 		// read configuration file
-		dbDir = props.getProperty(DB_LOC_KEY);
+		String dbDir = props.getProperty(DB_LOC_KEY);
 		
 		//Create and set up the content pane.
 		File dbFile = new File(dbDir + "/papers.xml");
