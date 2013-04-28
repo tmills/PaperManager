@@ -13,4 +13,8 @@ public abstract class PaperStringFilter {
 	}
 	
 	public abstract List<Paper> filterList(String keyword);
+	
+	public abstract void papersAdded();
+	
+	public abstract void papersRemoved();
 }

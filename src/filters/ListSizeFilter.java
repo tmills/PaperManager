@@ -15,11 +15,22 @@ public class ListSizeFilter extends PaperStringFilter {
 //		ArrayList<Paper>
 		try{
 			int size = Integer.parseInt(keyword);
-			return this.paperList.subList(0, size);
+			if(size >= paperList.size()) size = paperList.size();
+			return this.paperList.subList(0, size-1);
 		}catch(Exception e){
 			System.err.println("Problem reading string or getting sublist: " + e.getMessage());
 		}
 		return this.paperList;
+	}
+
+	@Override
+	public void papersAdded() {
+		// don't need to do anything
+	}
+
+	@Override
+	public void papersRemoved() {
+		// don't need to do anything
 	}
 
 }

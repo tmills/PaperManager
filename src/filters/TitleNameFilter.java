@@ -5,11 +5,11 @@ import java.util.List;
 
 import papers.Paper;
 
-public class AuthorNameFilter extends PaperStringFilter {
+public class TitleNameFilter extends PaperStringFilter {
 
-	private ArrayList<String> authorStrings = null;
-	
-	public AuthorNameFilter(List<Paper> paperList) {
+	private ArrayList<String> titleStrings = null;
+
+	public TitleNameFilter(List<Paper> paperList) {
 		super(paperList);
 		initStrings();
 	}
@@ -19,7 +19,7 @@ public class AuthorNameFilter extends PaperStringFilter {
 		String query = keyword.toLowerCase();
 		ArrayList<Paper> subList = new ArrayList<Paper>();
 		for(int i = 0; i < this.paperList.size(); i++){
-			if(authorStrings.get(i).contains(query)){
+			if(titleStrings.get(i).contains(query)){
 				subList.add(paperList.get(i));
 			}
 		}
@@ -28,13 +28,13 @@ public class AuthorNameFilter extends PaperStringFilter {
 
 	@Override
 	public void papersAdded() {
-		int newestPaper = authorStrings.size();
+		int newestPaper = titleStrings.size();
 		for(int i = newestPaper; i < paperList.size(); i++){
-			String author = paperList.get(i).getField("author");
-			if(author == null){
-				authorStrings.add("");
+			String title = paperList.get(i).getField("title");
+			if(title == null){
+				titleStrings.add("");
 			}else{
-				authorStrings.add(author.toLowerCase());
+				titleStrings.add(title.toLowerCase());
 			}
 		}
 	}
@@ -43,16 +43,16 @@ public class AuthorNameFilter extends PaperStringFilter {
 	public void papersRemoved() {
 		initStrings();
 	}
-	
+
 	private void initStrings(){
-		authorStrings = new ArrayList<String>();
+		titleStrings = new ArrayList<String>();
 		for(int i = 0; i < paperList.size(); i++){
 			Paper paper = paperList.get(i);
-			String author = paper.getField("author");
-			if(author == null){
-				authorStrings.add("");
+			String title = paper.getField("title");
+			if(title == null){
+				titleStrings.add("");
 			}else{
-				authorStrings.add(author.toLowerCase());
+				titleStrings.add(title.toLowerCase());
 			}
 		}		
 	}

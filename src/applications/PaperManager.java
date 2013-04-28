@@ -71,8 +71,8 @@ import ui.FileDropHandler;
 import ui.MyFileChooser;
 import bib.BibtexFileReader;
 import bib.BibtexFileWriter;
-import filters.AuthorNameFilter;
 import filters.PaperStringFilter;
+import filters.TitleNameFilter;
 
 /*
  * This is started based on the TableDemo on the swing tutorial site.
@@ -152,7 +152,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		pfr = new PaperFileReader(fn);
 		fullList = pfr.readFile();
 		displayList = fullList;
-		paperFilter = new AuthorNameFilter(fullList);
+		paperFilter = new TitleNameFilter(fullList);
 		writer = new PaperFileWriter(fn);
 		tModel = new RefTableModel();
 		filesLinked = new HashSet();
