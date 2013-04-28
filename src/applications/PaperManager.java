@@ -17,41 +17,10 @@
 
 package applications;
 
-import javax.swing.DefaultListSelectionModel;
-import javax.swing.JButton;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JList;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTable;
-import javax.swing.JTextArea;
-import javax.swing.JLabel;
-import javax.swing.JTextField;
-import javax.swing.JToolBar;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableModel;
-
-import bib.BibtexFileReader;
-import bib.BibtexFileWriter;
-
-import papers.*;
-import tags.Tag;
-import ui.BibEditorDialog;
-import ui.FileDropHandler;
-import ui.MyFileChooser;
-
 import java.awt.BorderLayout;
 import java.awt.Desktop;
 import java.awt.Dimension;
+import java.awt.TextArea;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -66,6 +35,41 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
+
+import javax.swing.DefaultListSelectionModel;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.JToolBar;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableModel;
+
+import org.apache.commons.io.FileUtils;
+
+import papers.Paper;
+import papers.PaperFileReader;
+import papers.PaperFileWriter;
+import tags.Tag;
+import ui.BibEditorDialog;
+import ui.FileDropHandler;
+import ui.MyFileChooser;
+import bib.BibtexFileReader;
+import bib.BibtexFileWriter;
 
 /*
  * This is started based on the TableDemo on the swing tutorial site.
@@ -91,6 +95,8 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 	private static final String EXIT = "EXIT";
 	private static final String DB_LOC_KEY = "DB_LOC";
 	private static final String EXPORT_DIR = "EXPORT_DIR";
+	private static final String SNIP_CMD = "ADD_SNIPPET";
+	
 	private static String configurationFilename = "/Users/tmill/.papermanager";
 	String sorryMsg = "Sorry, this platform does not support " +
 	  "opening PDFs from within the table.  " +
@@ -189,6 +195,12 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		button.setText("Import (bib)");
 		button.addActionListener(this);
 		button.setActionCommand(this.IMP_CMD);
+		toolbar.add(button);
+		
+		button = new JButton();
+		button.setText("Add bib snippet");
+		button.addActionListener(this);
+		button.setActionCommand(this.SNIP_CMD);
 		toolbar.add(button);
 		
 		// add table
@@ -320,11 +332,28 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 			int ret = fc.showOpenDialog(table);
 			if(ret == JFileChooser.APPROVE_OPTION){
 				fn = fc.getSelectedFile().getPath();
-				bibReader.readFile(fn, paperList);
+				try {
+					bibReader.readBibtext(FileUtils.readFileToString(fc.getSelectedFile()), paperList);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				tModel.loadData();
 				tModel.fireTableDataChanged();
 				writer.writeFile(paperList);
 			}
+		}else if(arg0.getActionCommand().equals(SNIP_CMD)){
+			if(bibReader == null) bibReader = new BibtexFileReader();
+//			JPanel textPanel = new JPanel();
+			JTextArea textArea = new JTextArea(10, 50);
+			textArea.setEditable(true);
+//			textPanel.add(textArea);
+			int ret = JOptionPane.showConfirmDialog(null, textArea, "Paste in bib entries:", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE); 
+			if(ret == JOptionPane.CANCEL_OPTION) return;
+			bibReader.readBibtext(textArea.getText(), paperList);
+			tModel.loadData();
+			tModel.fireTableDataChanged();
+			writer.writeFile(paperList);
 		}else if(arg0.getActionCommand().equals(EXP_CMD)){
 //			System.err.println("Export command triggered");
 			String fn="";
