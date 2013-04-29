@@ -8,10 +8,9 @@ licensed under GPLv2 and written by Johannes Henkel.  Thanks Johannes for
 saving me a lot of time and effort.
 
 STATUS
-This program is under heavily development.  It is not ready for practical use.
-There is no distribution yet.  The repository is formatted as an eclipse
-project, and there is no configuration, everything is hardcoded and uses
-a test file.
+This program is still under development, but it is currently in use by the author.
+The repository is formatted as an eclipse/maven project, and the current best way
+to obtain the program is to build and package as a runnable jar within eclipse (working on it).
 
 PURPOSE
 This program is designed and written to solve the problem of tracking all
@@ -22,23 +21,21 @@ or whatever), cited files in .bib file (with no user metadata), and having
 separate pdfs on every machine, they should be tracked like iTunes tracks songs,
 with some improvements specific to scientific papers.
 
+NEW FEATURES
+* Incremental filtering by author/title (by tag coming soon)
+* Import bib snippets from e.g., google scholar
+
 What separates this program from others with similar goals:
  * Allows for tagging and summarization of papers.
  * Intended to use Dropbox folder for storing pdfs across machines
  * Intended to open PDFs from interface (instead of searching with spotlight,
 which is surprisingly bad at locating pdfs based on content)
  * Uses xml library file to track refs (also sync'd with Dropbox)
- * Tight integration with bibtex (import/export coming soon)
+ * Tight integration with bibtex (import/export as well as load snippets from google scholar)
 
 
 HELPING
 If anyone is interested in contributing to this project, I would be thrilled.
-I have the above goals in mind, and I think I can do those fairly quickly.
-
-Where I could use help the most is:
- * Making the interface "pretty" as well as "standard" (e.g., in os x it should look like an os x program)
- * Organizing the code neatly
- * Cross-platform configuration (I can put .papermanager file in linux/mac with
-directory information, but how to do it in windows/other smartly?)
- * Features I have not thought of but would be very useful to others.
+The best way to help would be simply to try out the program and report any issues. If you
+are able to solve issues or implement new features that would be appreciated too.
 
