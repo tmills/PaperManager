@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -49,6 +50,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
@@ -71,6 +73,7 @@ import ui.FileDropHandler;
 import ui.MyFileChooser;
 import bib.BibtexFileReader;
 import bib.BibtexFileWriter;
+import filters.AuthorNameFilter;
 import filters.PaperStringFilter;
 import filters.TitleNameFilter;
 
@@ -99,6 +102,8 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 	private static final String DB_LOC_KEY = "DB_LOC";
 	private static final String EXPORT_DIR = "EXPORT_DIR";
 	private static final String SNIP_CMD = "ADD_SNIPPET";
+	private static final String FILTER_AUTHOR = "FILTER_AUTHOR";
+	private static final String FILTER_TITLE = "FILTER_TITLE";
 	
 	private static String configurationFilename = "/Users/tmill/.papermanager";
 	String sorryMsg = "Sorry, this platform does not support " +
@@ -118,6 +123,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 	JTextArea summaryBox=null;
 	JTextField tagField=null;
 	JTextField filterField = null;
+	ButtonGroup filterButtons = null;
 	RefTableModel tModel;
 	TagTableModel tagModel;
 	String rootDir;
@@ -152,7 +158,6 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		pfr = new PaperFileReader(fn);
 		fullList = pfr.readFile();
 		displayList = fullList;
-		paperFilter = new TitleNameFilter(fullList);
 		writer = new PaperFileWriter(fn);
 		tModel = new RefTableModel();
 		filesLinked = new HashSet();
@@ -198,24 +203,39 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		filterField.addKeyListener(this);
 		toolbar.add(filterField);
 		
+		paperFilter = new AuthorNameFilter(fullList);
+		filterButtons = new ButtonGroup();
+		JRadioButton authorButton = new JRadioButton("Author");
+		authorButton.setSelected(true);
+		authorButton.addActionListener(this);
+		authorButton.setActionCommand(FILTER_AUTHOR);
+		JRadioButton titleButton = new JRadioButton("Title");
+		titleButton.addActionListener(this);
+		titleButton.setActionCommand(FILTER_TITLE);
+		
+		filterButtons.add(authorButton);
+		filterButtons.add(titleButton);
+		toolbar.add(authorButton);
+		toolbar.add(titleButton);
+		
 		toolbar.addSeparator(new Dimension(50,10));
 		
 		button = new JButton();
 		button.setText("Export (bib)");
 		button.addActionListener(this);
-		button.setActionCommand(this.EXP_CMD);
+		button.setActionCommand(EXP_CMD);
 		toolbar.add(button);
 		
 		button = new JButton();
 		button.setText("Import (bib)");
 		button.addActionListener(this);
-		button.setActionCommand(this.IMP_CMD);
+		button.setActionCommand(IMP_CMD);
 		toolbar.add(button);
 		
 		button = new JButton();
 		button.setText("Add bib snippet");
 		button.addActionListener(this);
-		button.setActionCommand(this.SNIP_CMD);
+		button.setActionCommand(SNIP_CMD);
 		toolbar.add(button);
 		
 		// add table
@@ -313,12 +333,16 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 //			tModel.loadData();
 //			tModel.fireTableDataChanged();
 		}else if(arg0.getActionCommand().equals(RM_CMD)){
-//			System.err.println("Remove button has been pressed!");
-			int row = table.getSelectedRow();
-			displayList.remove(row);
-			tModel.loadData();
-			tModel.fireTableDataChanged();
-			writer.writeFile(displayList);
+			//			System.err.println("Remove button has been pressed!");
+			if(displayList == fullList){
+				int row = table.getSelectedRow();
+				displayList.remove(row);
+				tModel.loadData();
+				tModel.fireTableDataChanged();
+				writer.writeFile(displayList);
+			}else{
+				JOptionPane.showMessageDialog(parent, "This button does not work in filter mode!", "Warning", JOptionPane.WARNING_MESSAGE);
+			}
 		}else if(arg0.getActionCommand().equals(OPEN_CMD)){
 //			System.err.println("Open button has been pressed.");
 			if(desktop != null){
@@ -431,6 +455,20 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 				fatal(e, "ERROR: Cannot store properties in file: " + confFile.getAbsolutePath());
 			}			
 			System.exit(0);
+		}else if(arg0.getActionCommand().equals(FILTER_AUTHOR)){
+			if(!(paperFilter instanceof AuthorNameFilter)){
+				filterField.setText("");
+				paperFilter = new AuthorNameFilter(fullList);
+				tModel.loadData();
+				tModel.fireTableDataChanged();
+			}
+		}else if(arg0.getActionCommand().equals(FILTER_TITLE)){
+			if(!(paperFilter instanceof TitleNameFilter)){
+				filterField.setText("");
+				paperFilter = new TitleNameFilter(fullList);
+				tModel.loadData();
+				tModel.fireTableDataChanged();
+			}
 		}else{
 			System.err.println("Unknown event: " + arg0.getActionCommand());
 		}
@@ -441,7 +479,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		dialog.setVisible(true);
 		if(dialog.isDirty()){
 			tModel.loadData();
-			tModel.fireTableStructureChanged();
+			tModel.fireTableDataChanged();
 			writer.writeFile(displayList);
 		}
 	}
@@ -797,7 +835,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		if(textSoFar.length() == 0) displayList = fullList;
 		else displayList = paperFilter.filterList(textSoFar);
 		tModel.loadData();
-		tModel.fireTableStructureChanged();	
+		tModel.fireTableDataChanged();	
 	}
 
 	@Override
