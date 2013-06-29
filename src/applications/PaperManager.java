@@ -326,12 +326,16 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
 		if(arg0.getActionCommand().equals(ADD_CMD)){
-//			System.err.println("Add button has been pressed!");
-			displayList.add(new Paper());
-			editPaper(displayList.size()-1);
-//			BibEditorDialog dialog = new BibEditorDialog(
-//			tModel.loadData();
-//			tModel.fireTableDataChanged();
+			if(fullList == displayList){
+				//			System.err.println("Add button has been pressed!");
+				displayList.add(new Paper());
+				editPaper(displayList.size()-1);
+				//			BibEditorDialog dialog = new BibEditorDialog(
+				//			tModel.loadData();
+				//			tModel.fireTableDataChanged();
+			}else{
+				JOptionPane.showMessageDialog(parent, "This button does not work in filter mode!", "Warning", JOptionPane.WARNING_MESSAGE);				
+			}
 		}else if(arg0.getActionCommand().equals(RM_CMD)){
 			//			System.err.println("Remove button has been pressed!");
 			if(displayList == fullList){
@@ -339,7 +343,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 				displayList.remove(row);
 				tModel.loadData();
 				tModel.fireTableDataChanged();
-				writer.writeFile(displayList);
+				writer.writeFile(fullList);
 			}else{
 				JOptionPane.showMessageDialog(parent, "This button does not work in filter mode!", "Warning", JOptionPane.WARNING_MESSAGE);
 			}
@@ -364,35 +368,43 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 			}
 		}else if(arg0.getActionCommand().equals(IMP_CMD)){
 //			System.err.println("Import command triggered");
-			String fn="";
-			if(bibReader == null) bibReader = new BibtexFileReader();
-			JFileChooser fc = new JFileChooser();
-			fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-			int ret = fc.showOpenDialog(table);
-			if(ret == JFileChooser.APPROVE_OPTION){
-				fn = fc.getSelectedFile().getPath();
-				try {
-					bibReader.readBibtext(FileUtils.readFileToString(fc.getSelectedFile()), displayList);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+			if(fullList == displayList){
+				String fn="";
+				if(bibReader == null) bibReader = new BibtexFileReader();
+				JFileChooser fc = new JFileChooser();
+				fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+				int ret = fc.showOpenDialog(table);
+				if(ret == JFileChooser.APPROVE_OPTION){
+					fn = fc.getSelectedFile().getPath();
+					try {
+						bibReader.readBibtext(FileUtils.readFileToString(fc.getSelectedFile()), fullList);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					tModel.loadData();
+					tModel.fireTableDataChanged();
+					writer.writeFile(fullList);
 				}
-				tModel.loadData();
-				tModel.fireTableDataChanged();
-				writer.writeFile(displayList);
+			}else{
+				JOptionPane.showMessageDialog(parent, "This button does not work in filter mode!", "Warning", JOptionPane.WARNING_MESSAGE);
 			}
 		}else if(arg0.getActionCommand().equals(SNIP_CMD)){
-			if(bibReader == null) bibReader = new BibtexFileReader();
-//			JPanel textPanel = new JPanel();
-			JTextArea textArea = new JTextArea(10, 50);
-			textArea.setEditable(true);
-//			textPanel.add(textArea);
-			int ret = JOptionPane.showConfirmDialog(null, textArea, "Paste in bib entries:", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE); 
-			if(ret == JOptionPane.CANCEL_OPTION) return;
-			bibReader.readBibtext(textArea.getText(), displayList);
-			tModel.loadData();
-			tModel.fireTableDataChanged();
-			writer.writeFile(displayList);
+			if(fullList == displayList){
+				if(bibReader == null) bibReader = new BibtexFileReader();
+				//			JPanel textPanel = new JPanel();
+				JTextArea textArea = new JTextArea(10, 50);
+				textArea.setEditable(true);
+				//			textPanel.add(textArea);
+				int ret = JOptionPane.showConfirmDialog(null, textArea, "Paste in bib entries:", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE); 
+				if(ret == JOptionPane.CANCEL_OPTION) return;
+				bibReader.readBibtext(textArea.getText(), fullList);
+				tModel.loadData();
+				tModel.fireTableDataChanged();
+				writer.writeFile(fullList);
+			}else{
+				JOptionPane.showMessageDialog(parent, "This button does not work in filter mode!", "Warning", JOptionPane.WARNING_MESSAGE);
+			}
 		}else if(arg0.getActionCommand().equals(EXP_CMD)){
 //			System.err.println("Export command triggered");
 			String fn="";
@@ -417,7 +429,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 			Paper selPaper = displayList.get(row);
 //			selPaper.setField("summary", summaryBox.getText());
 			selPaper.setSummary(summaryBox.getText());
-			writer.writeFile(displayList);
+			writer.writeFile(fullList);
 		}else if(arg0.getActionCommand().equals(NEW_TAG)){
 //			System.err.println("New tag command triggered");
 			int row = table.getSelectedRow();
@@ -433,7 +445,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 				displayList.get(row).setFile(fc.getSelectedFile());
 				tModel.loadData();
 				tModel.fireTableCellUpdated(row, PDF_COL);
-				writer.writeFile(displayList);
+				writer.writeFile(fullList);
 			}
 		}else if(arg0.getActionCommand().equals(EDIT_CMD)){
 //			System.err.println("Edit command triggered");
@@ -480,7 +492,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		if(dialog.isDirty()){
 			tModel.loadData();
 			tModel.fireTableDataChanged();
-			writer.writeFile(displayList);
+			writer.writeFile(fullList);
 		}
 	}
 	
@@ -562,7 +574,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 			}else{
 				displayList.get(row).setField(columnNames[col].toLowerCase(), (String) value);
 			}
-			writer.writeFile(displayList);
+			writer.writeFile(fullList);
 			fireTableCellUpdated(row, col);
 		}
 		
@@ -626,7 +638,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 		public void addTag(int row, String text) {
 			displayList.get(row).addTag(text);
 			setData(displayList.get(row).getTags());
-			writer.writeFile(displayList);
+			writer.writeFile(fullList);
 		}
 
 		public void setValueAt(Object newData, int row, int col){
@@ -635,7 +647,7 @@ public class PaperManager extends JPanel implements ActionListener, MouseListene
 			System.err.println("Old tag: " + oldTag);
 			oldTag.setTag(newData.toString());
 			data[row][0] = oldTag;
-			writer.writeFile(displayList);
+			writer.writeFile(fullList);
 		}
 		
 		@Override
